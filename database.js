@@ -12,7 +12,13 @@ const UNLOCK_DEFINITIONS = [
 
 // Radio Stations
 const RADIO_DEFINITIONS = [
-  { key: "FmStationBreathwork", label: "Radio Station 1", value: 1 }
+  { key: "FmStationBreathwork", label: "Radio Station 1", value: 1 },
+  { key: "FmStationSleuthFm", label: "Radio Station 2", value: 1 },
+  { key: "FmStationFourthSpace", label: "Radio Station 3", value: 1 },
+  { key: "FmStationJourneyBeat", label: "Radio Station 4", value: 1 },
+  { key: "FmStationDanceFm", label: "Radio Station 5", value: 1 },
+  { key: "FmStationAFJ", label: "Radio Station 6", value: 1 },
+  { key: "FmStationKosmische", label: "Radio Station 7", value: 1 }
 ];
 
 // Curated Inventory Items (Orbs, Lights, and Lamps excluded)
@@ -65,5 +71,28 @@ const INVENTORY_DATABASE = {
   "209a7dc3-9dcb-425e-86c5-3a84aa9bd0ec": "Clock (red tower station)",
   "2d8101c4-223f-4939-8df6-809562469516": "Backpack blue (hub)",
   "66de92ed-177d-49d5-aa97-e86d98083ac0": "Flare Gun (yellow)",
-  "d8e70c55-9800-498e-af4e-7054093950e4": "Radio (station 7)"
+  "d8e70c55-9800-498e-af4e-7054093950e4": "Radio (station 7)",
+  "8b9fc973-4200-4934-8169-dde2de5b1d10": "Flare Gun (blue)",
+  "ec17f547-5b1f-4fcf-828e-f2932dc2f620": "Radio (station 4)",
+  "22009189-d33d-4e65-8b3c-c8257188743d": "Backpack red (northeast)",
+  "ef09f445-cd71-4414-938a-7a7122dcd121": "Belt red (northeast)",
+  "88942e8e-6fae-4d71-93f0-8500741a82d1": "Binoculars (chair ride puzzle)",
+  "79e09b95-3a26-4a4e-a494-af599948f1f5": "Gourd (carousel)",
+  "84f2b536-41a9-4571-8304-579b3f5cf584": "Gourd (teller window)",
+  "78c2bd04-9f92-41c9-b605-6f079df4cc30": "Gourd (high button)",
+  "aee838dc-281f-41fd-8f48-c97c10769172": "Gourd (easy sim press)",
+  "e854b404-7ad4-4b2c-82f9-54d1b0bf6591": "Gourd (window labyrinth)",
+  "e0da06cd-6f68-44d9-8541-7616d8c4de9a": "Gourd (fielding)",
+  "9bf74ba0-af80-45c7-b9db-bd3d15137f10": "Chair (jam 1)",
+  "70501fef-7827-41cb-989e-7c8d8a44925f": "Chair (jam 2)",
+  "2808bcb9-e9a0-4d86-b830-34f9b9d871f6": "Chair (jam 3)",
+  "e94ea998-7014-4cd9-acfa-02abd795ca02": "Chair (jam 4)",
+  "e94f569e-9f96-4d3c-9c7e-a1b369c74ab3": "Chair (jam 5)",
+  "13e8b476-3985-44b8-8ec6-aae5cec8bb78": "Chair (jam 6)",
+  "f2dea8ab-08ea-434d-b98b-7e66a499392e": "Backpack peach (south valley)",
+  "02e75b25-ffa8-49e9-9fa3-7c453206aad9": "Backpack red (south tip)",
+  "3e944e74-2d2e-40e2-b1ba-a1afa8c937ee": "Belt blue (south tip)",
+  "2835fac9-81b1-4312-a576-cc977e6e8c85": "Radio (station 2)",
+  "eed83af3-1958-4718-a634-5280bdc6b3cb": "Binoculars (southern peak)",
+  "c420401c-ba23-4e0c-aeac-2ea3ebcafa26": "Scanner (southern peak)"
 };
