@@ -475,20 +475,25 @@
   }
 
   function getGourdState(gourd) {
-    const canPuzzleOrInv = gourd.solved_value != null && Boolean(gourd.item_id);
+    const canPuzzle = gourd.solved_value != null;
+    const canInventory = Boolean(gourd.item_id);
     const isSolved = isKeyPresent(gourd.key);
 
+    let defaultMode = 'placed';
+    if (canPuzzle) defaultMode = 'at_puzzle';
+    else if (canInventory) defaultMode = 'inventory';
+
     if (!isSolved) {
-      return { solved: false, mode: canPuzzleOrInv ? 'at_puzzle' : 'placed', slotValue: null };
+      return { solved: false, mode: defaultMode, slotValue: null };
     }
 
-    const inInventory = Boolean(gourd.item_id) && savePayload.inventory.includes(gourd.item_id);
+    const inInventory = canInventory && savePayload.inventory.includes(gourd.item_id);
     const currentValue = getEntryValue(gourd.key);
 
-    if (inInventory && canPuzzleOrInv) {
+    if (inInventory && canInventory) {
       return { solved: true, mode: 'inventory', slotValue: null };
     }
-    if (currentValue === gourd.solved_value && canPuzzleOrInv) {
+    if (canPuzzle && currentValue === gourd.solved_value) {
       return { solved: true, mode: 'at_puzzle', slotValue: null };
     }
     return { solved: true, mode: 'placed', slotValue: currentValue };
@@ -507,8 +512,10 @@
     if (isSolved) {
       if (mode === 'at_puzzle' && gourd.solved_value != null) {
         savePayload.entries.push({ key: gourd.key, value: gourd.solved_value });
-      } else if (mode === 'inventory' && gourd.solved_value != null && gourd.item_id) {
-        savePayload.entries.push({ key: gourd.key, value: gourd.solved_value });
+      } else if (mode === 'inventory' && gourd.item_id) {
+        if (gourd.solved_value != null) {
+          savePayload.entries.push({ key: gourd.key, value: gourd.solved_value });
+        }
         savePayload.inventory.push(gourd.item_id);
       } else if (mode === 'placed' && slotValue != null) {
         savePayload.entries.push({ key: gourd.key, value: Number(slotValue) });
@@ -541,7 +548,8 @@
       groupEl.appendChild(titleEl);
 
       areaGroups[area].forEach(gourd => {
-        const canPuzzleOrInv = gourd.solved_value != null && Boolean(gourd.item_id);
+        const canPuzzle = gourd.solved_value != null;
+        const canInventory = Boolean(gourd.item_id);
         const state = getGourdState(gourd);
         const takenSlots = getTakenSlots(gourd.key);
 
@@ -575,12 +583,12 @@
           </div>
           <div class="gourd-controls ${state.solved ? '' : 'hidden'}">
             <div class="radio-group">
-              <label class="${canPuzzleOrInv ? '' : 'disabled'}" ${canPuzzleOrInv ? '' : 'title="Requires solved_value and item_id in database"'}>
-                <input type="radio" name="mode_${gourd.key}" value="at_puzzle" ${state.mode === 'at_puzzle' ? 'checked' : ''} ${canPuzzleOrInv ? '' : 'disabled'}>
+              <label class="${canPuzzle ? '' : 'disabled'}" ${canPuzzle ? '' : 'title="Requires solved_value in database"'}>
+                <input type="radio" name="mode_${gourd.key}" value="at_puzzle" ${state.mode === 'at_puzzle' ? 'checked' : ''} ${canPuzzle ? '' : 'disabled'}>
                 <span>At Puzzle</span>
               </label>
-              <label class="${canPuzzleOrInv ? '' : 'disabled'}" ${canPuzzleOrInv ? '' : 'title="Requires solved_value and item_id in database"'}>
-                <input type="radio" name="mode_${gourd.key}" value="inventory" ${state.mode === 'inventory' ? 'checked' : ''} ${canPuzzleOrInv ? '' : 'disabled'}>
+              <label class="${canInventory ? '' : 'disabled'}" ${canInventory ? '' : 'title="Requires item_id in database"'}>
+                <input type="radio" name="mode_${gourd.key}" value="inventory" ${state.mode === 'inventory' ? 'checked' : ''} ${canInventory ? '' : 'disabled'}>
                 <span>Inventory</span>
               </label>
               <label>
@@ -600,7 +608,8 @@
 
         function triggerUpdate() {
           const solved = solveToggle.checked;
-          const selectedMode = Array.from(radioInputs).find(r => r.checked)?.value || (canPuzzleOrInv ? 'at_puzzle' : 'placed');
+          const fallback = canPuzzle ? 'at_puzzle' : (canInventory ? 'inventory' : 'placed');
+          const selectedMode = Array.from(radioInputs).find(r => r.checked)?.value || fallback;
           const selectedSlot = slotSelect.value || activeSlotValue;
           applyGourdState(gourd, solved, selectedMode, selectedSlot);
         }
