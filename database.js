@@ -62,7 +62,9 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdTelescopeToBox",
     label: "Telescope to Box",
-    area: "Intro Valley"
+    area: "Intro Valley",
+    solved_value: 1162,
+    item_id: "e902bde0-e23a-4651-a601-712fa66de665"
   },
   {
     key: "gourdBasketball",
@@ -80,8 +82,8 @@ const GOURD_DEFINITIONS = [
   },
   {
     key: "gourdCannonBall",
-    label: "Fielding",
-    area: "Red Tower",
+    label: "Cannonball",
+    area: "Main Peak",
     solved_value: 1042,
     item_id: "787f8a29-8752-4f45-b3bd-fc37bdc57ca2"
   },
@@ -94,13 +96,17 @@ const GOURD_DEFINITIONS = [
   },
   {
     key: "gourdPointersParadise",
-    label: "Pointers Paradise",
-    area: "Red Tower"
+    label: "Pointers' Paradise",
+    area: "Red Tower",
+    solved_value: 1372,
+    item_id: "c06844a3-c8fc-4019-9972-e3a7913ba8dc"
   },
   {
     key: "gourdOpticalTelegraph",
     label: "Optical Telegraph",
-    area: "Green Tower"
+    area: "Green Tower",
+    solved_value: 1242,
+    item_id: "01fb88ad-d614-45f9-8f16-fd3fd06cd8bc"
   },
   {
     key: "gourdObservationRoom",
@@ -133,48 +139,62 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdCarousel",
     label: "Carousel",
-    area: "Yellow Tower",
+    area: "Main Peak",
     solved_value: 1142,
     item_id: "79e09b95-3a26-4a4e-a494-af599948f1f5"
   },
   {
     key: "gourdCoordinatesHolding",
     label: "Coordinates Holding",
-    area: "Unsorted",
+    area: "Red Tower",
+    solved_value: 1382,
+    item_id: "723416d8-eff6-474e-ab5f-c3c398b1d799"
   },
   {
     key: "gourdMemoryBombs",
-    label: "gourdMemoryBombs",
-    area: "Unsorted",
+    label: "Memory Bombs",
+    area: "Green Tower",
+    solved_value: 1272,
+    item_id: "7e1cbead-d5b2-4d0a-b4a0-9a22f1c95856"
   },
   {
     key: "gourdPerspectiveCounting",
     label: "Perspective Counting",
-    area: "Unsorted",
+    area: "Green Tower",
+    solved_value: 1552,
+    item_id: "929cee23-1d31-4a8a-ad56-aec75acdf079"
   },
   {
     key: "gourdTrapRoom",
     label: "Trap Room",
-    area: "Unsorted",
+    area: "Green Tower",
+    solved_value: 1062,
+    item_id: "e4dce483-ca49-4c24-b362-ec7304f6d4a1"
   },
   {
     key: "gourdRingRoom",
     label: "Ring Room",
-    area: "Unsorted",
+    area: "Green Tower",
+    solved_value: 1092,
+    item_id: "8405503b-2ea3-4708-babe-e5cb47e75ba3"
   },
   {
     key: "gourdCabinFever",
     label: "Cabin Fever",
-    area: "Unsorted",
+    area: "Blue Tower",
+    solved_value: 1002,
+    item_id: "903d3924-ec05-456d-aa5d-33f6431bf558"
   },
   {
     key: "gourdFlareRun",
     label: "Flare Run",
-    area: "Unsorted",
+    area: "Blue Tower",
+    solved_value: 1572,
+    item_id: "b151ce51-fda9-4caa-8ed2-d78fce41098b"
   },
   {
     key: "gourdCenturonSong",
-    label: "Centuron Song",
+    label: "Centurion Song",
     area: "Yellow Tower",
     solved_value: 1472,
     item_id: "97454e67-9a62-495b-9fa9-7b01adcb5e04"
@@ -182,7 +202,9 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdScoutBombs",
     label: "Scout Bombs",
-    area: "Unsorted",
+    area: "Yellow Tower",
+    solved_value: 1442,
+    item_id: "53ea5ed0-5534-4e3a-9500-5cf2f620c497"
   },
   {
     key: "gourdIndoorSemaphore",
@@ -201,7 +223,9 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdMicrophoneArray",
     label: "Microphone Array",
-    area: "Unsorted",
+    area: "Yellow Tower",
+    solved_value: 1352,
+    item_id: "587c27b4-6ec3-408b-8390-96f80c65da16"
   },
   {
     key: "gourdConcert",
@@ -220,82 +244,114 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdSignalFlags",
     label: "Signal Flags",
-    area: "Unsorted",
+    area: "Green Tower",
+    solved_value: 1412,
+    item_id: "5a72ab76-fa7f-4b87-b967-6cd6c1d5990c"
   },
   {
     key: "gourdDancerAndSelecter",
     label: "Dancer & Selector",
     area: "Purple",
+    solved_value: 1512,
+    item_id: "30bc3f4c-08fc-47ca-a95b-36df9efed8bf"
   },
   {
     key: "gourdCabinFeverLong",
     label: "Cabin Fever Long",
     area: "Purple",
+    solved_value: 1422,
+    item_id: "bc8ffeb2-72d5-4a52-81c4-43cccf81c7d5"
   },
   {
     key: "gourdKickUpPits",
     label: "Kick Up Pits",
-    area: "Unsorted",
+    area: "Main Peak",
+    solved_value: 1492,
+    item_id: "67b16620-bb35-4254-89bd-9a27cc7c872c"
   },
   {
     key: "gourdCoordinates",
     label: "Coordinates",
-    area: "Unsorted",
+    area: "Green Tower",
+    solved_value: 1152,
+    item_id: "1831bcbf-fdbc-442b-a4bb-52270e0a24f9"
   },
   {
     key: "gourdBlindfoldFishtrap",
     label: "Blindfold Fishtrap",
-    area: "Unsorted",
+    area: "Green Tower",
+    solved_value: 1542,
+    item_id: "a7feca56-e073-4649-b62b-dcbe064fb5a2"
   },
   {
     key: "gourdMediumSimPress",
     label: "Medium Sim Press",
-    area: "Unsorted",
+    area: "Green Tower",
+    solved_value: 1072,
+    item_id: "34ea1a2f-8dd1-4ac4-be39-80126a390464"
   },
   {
     key: "gourdBreadcrumbLoop",
     label: "Breadcrumb Loop",
-    area: "Unsorted",
+    area: "Main Peak",
+    solved_value: 1432,
+    item_id: "51ed260a-e519-4ac7-a8bb-79356344ffa6"
   },
   {
     key: "gourdCannonballCommute",
     label: "Cannonball Commute",
     area: "Purple",
+    solved_value: 1582,
+    item_id: "bba47059-5dc0-4f0c-9a91-ed0232a2babb"
   },
   {
     key: "gourdCharadesRooms",
     label: "Charades Rooms",
     area: "Purple",
+    solved_value: 1342,
+    item_id: "268fc057-9e09-4f41-b950-077b3841e2e8"
   },
   {
     key: "gourdSpeedObby",
     label: "Speed Obby",
     area: "Purple",
+    solved_value: 1522,
+    item_id: "b90611e9-5f88-4d22-91d8-b515293dce54"
   },
   {
     key: "gourdPoetAndPontiff",
     label: "Poet & Pontiff",
     area: "Purple",
+    solved_value: 1592,
+    item_id: "cbbca208-0dcf-40a9-b5c2-2bab30e80e05"
   },
   {
     key: "gourdTileThief",
     label: "Tile Thief",
-    area: "Unsorted",
+    area: "Green Tower",
+    solved_value: 1332,
+    item_id: "92b54fba-6b48-4273-b3e2-0f318a0a5825"
   },
   {
     key: "gourdCenturionSeance",
     label: "Centurion Seance",
     area: "Purple",
+    solved_value: 1562,
+    item_id: "e9d4ceeb-0735-48aa-a2f2-996b36eeba8a"
   },
   {
     key: "gourdMusicalHoliday",
     label: "Musical Holiday",
-    area: "Unsorted",
+    area: "Blue Tower",
+    solved_value: 1482,
+    item_id: "edd455c7-cdfd-467a-a854-5f44499df55c"
   },
   {
     key: "gourdSingerAndSelecter",
     label: "Singer & Selector",
-    area: "Unsorted",
+    area: "Yellow Tower",
+    solved_value: 1502,
+    item_id: "9b70befb-d3f4-4deb-ad32-939ec6a20005"
   }
 ];
 
@@ -380,8 +436,6 @@ const INVENTORY_DATABASE = {
   "e69463b0-e27c-4247-93e4-50df64cd12ad": "Laser (yellow tower)",
   "730affd5-3139-473c-aaf2-4ecd5142c82f": "Backpack green (golf)",
   "9057af3c-12c5-48d8-8251-07233a203861": "Belt green (north face)",
-  "03b99000-0640-4f67-9da4-8eac378a4158": "Gourd (basketball)",
-  "5fa8468a-dfaa-48fe-8057-46d47b9e56a5": "Gourd Case (balloon)",
   "cd159c6e-88aa-4158-a11f-2790cf581052": "Walkie Talkie yellow (balloon)",
   "00d7ed74-a4d9-4969-b8e2-bf8d4975ac8a": "Walkie Talkie blue (balloon)",
   "80381b52-ede7-494f-b800-0c77a71f57e0": "Flare Gun (red)",
@@ -404,12 +458,6 @@ const INVENTORY_DATABASE = {
   "22009189-d33d-4e65-8b3c-c8257188743d": "Backpack red (northeast)",
   "ef09f445-cd71-4414-938a-7a7122dcd121": "Belt red (northeast)",
   "88942e8e-6fae-4d71-93f0-8500741a82d1": "Binoculars (chair ride puzzle)",
-  "79e09b95-3a26-4a4e-a494-af599948f1f5": "Gourd (carousel)",
-  "84f2b536-41a9-4571-8304-579b3f5cf584": "Gourd (teller window)",
-  "78c2bd04-9f92-41c9-b605-6f079df4cc30": "Gourd (high button)",
-  "aee838dc-281f-41fd-8f48-c97c10769172": "Gourd (easy sim press)",
-  "e854b404-7ad4-4b2c-82f9-54d1b0bf6591": "Gourd (window labyrinth)",
-  "e0da06cd-6f68-44d9-8541-7616d8c4de9a": "Gourd (fielding)",
   "9bf74ba0-af80-45c7-b9db-bd3d15137f10": "Chair (jam 1)",
   "70501fef-7827-41cb-989e-7c8d8a44925f": "Chair (jam 2)",
   "2808bcb9-e9a0-4d86-b830-34f9b9d871f6": "Chair (jam 3)",
@@ -421,5 +469,27 @@ const INVENTORY_DATABASE = {
   "3e944e74-2d2e-40e2-b1ba-a1afa8c937ee": "Belt blue (south tip)",
   "2835fac9-81b1-4312-a576-cc977e6e8c85": "Radio (station 2)",
   "eed83af3-1958-4718-a634-5280bdc6b3cb": "Binoculars (southern peak)",
-  "c420401c-ba23-4e0c-aeac-2ea3ebcafa26": "Scanner (southern peak)"
+  "c420401c-ba23-4e0c-aeac-2ea3ebcafa26": "Scanner (southern peak)",
+  "30d9262e-172d-49f8-8448-1df83f228f2d": "Text Sign (GPS Box)",
+  "53a9dbfc-8f28-4f29-8f7a-ce40fe53beaa": "Text Sign (hub 1)",
+  "8e4c6b5a-fe32-4153-88e5-115b4e67cc99": "Text Sign (hub 2)",
+  "63d54442-149e-4aab-822e-63af72c1630a": "Text Sign (hub 3)",
+  "aef5ae8b-6b16-4dd2-859e-eaaa004cd9d5": "Football",
+  "f29614f5-0c70-4ed8-b152-9e57b371f20d": "Walkie Talkie Blue (red tower)",
+  "76601ed6-da1c-4326-9c8d-2c6168d31f36": "Backpack yellow",
+  "185e3864-0dcb-498b-baee-6da1a4b21a8e": "Walkie Talkie Yellow (red tower)",
+  "cee6114c-2dc0-4d02-a393-5686a2f2e9b8": "Walkie Talkie Yellow (northeast)",
+  "48da7ac6-988f-4f4b-a376-3686fe550f69": "Megaphone (southern tip)",
+  "7e2f3ba8-2124-4fe9-8707-1621be5a0926": "Megaphone (green tower)",
+  "3a73627e-2c56-4227-8ace-cd9b1e0614a4": "Tea kettle 1",
+  "ef7d6c42-bdf5-4dfe-bb26-79eadbd3105d": "Tea kettle 2",
+  "9e7486b7-e953-401e-bdab-49f665e02f4c": "Tea kettle 3",
+  "92b8e9be-f548-499a-8c2f-c92212df7e6a": "Tea kettle 4",
+  "0a379de4-d171-4ebd-aeb2-8ac2409787cb": "Tea kettle 5",
+  "119fcab4-2086-4ed9-a02e-a9945e849f96": "Tea kettle 6",
+  "c6259d07-2499-4063-b033-b72cddd951c2": "Megaphone (yellow tower)",
+  "d73ec09b-8e2b-432e-8e62-b5ff71db2d23": "Belt purple (tunnels)",
+  "ea8c71ac-810f-4426-84a1-17e0e3b0b81d": "Radio (peak)",
+  "ed2f8967-b4c1-43d9-91b5-11679be10bc6": "Binoculars (peak)",
+  "5fa8468a-dfaa-48fe-8057-46d47b9e56a5": "Gourd Case (balloon)"
 };
