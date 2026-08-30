@@ -14,8 +14,9 @@ Note: House House states that there is not canon terminology for the various thi
 - Open/close the large gates
 - Unlock/disable features requiring completed big keys
 - Enable/disable radio stations
-- Unlock *some* of the early game gourds and modify where they have been placed
 - Add/remove *some* items from the "Lost & Found" pedestal in the starting area
+- Unlock *some* of the early game gourds and modify where they have been placed
+  - For a few of these, the "solved" and "inventory" options are disabled because I'm missing those IDs
 
 ## To Do
 
@@ -23,6 +24,7 @@ Note: House House states that there is not canon terminology for the various thi
 - Add more gourds and end-game unlocks
 - Add more items
 - Add in enable/disable for light fixtures
+- Add editing in-game sign text
 
 ### Fun Facts
 

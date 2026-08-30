@@ -45,6 +45,11 @@ const GOURD_DEFINITIONS = [
     item_id: "84f2b536-41a9-4571-8304-579b3f5cf584"
   },
   {
+    key: "gourdTelescopeToBox",
+    label: "Telescope to Box",
+    area: "Intro Valley"
+  },
+  {
     key: "gourdBasketball",
     label: "Basketball",
     area: "Red Tower",
@@ -64,6 +69,16 @@ const GOURD_DEFINITIONS = [
     area: "Red Tower",
     solved_value: 1182,
     item_id: "e854b404-7ad4-4b2c-82f9-54d1b0bf6591"
+  },
+  {
+    key: "gourdPointersParadise",
+    label: "Pointers Paradise",
+    area: "Red Tower"
+  },
+  {
+    key: "gourdOpticalTelegraph",
+    label: "Optical Telegraph",
+    area: "Green Tower"
   },
   {
     key: "gourdCarousel",
