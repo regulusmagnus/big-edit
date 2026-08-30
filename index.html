@@ -32,7 +32,7 @@
       border: 2px dashed var(--card-border);
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 2.5rem 1rem;
+      padding: 2rem 1rem;
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s, background-color 0.2s;
@@ -41,6 +41,23 @@
     .drop-zone:hover { border-color: var(--accent); background: #222228; }
     .drop-zone p { margin: 0; color: var(--text-muted); }
     .drop-zone strong { color: var(--accent); }
+
+    .path-helper {
+      margin-top: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #141417;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      font-size: 0.8rem;
+    }
+    .path-helper code {
+      color: var(--accent);
+      font-family: monospace;
+      user-select: all;
+    }
 
     .card {
       background: var(--card-bg);
@@ -290,6 +307,11 @@
 
   <div id="dropZone" class="drop-zone">
     <p>📁 Drag and drop <strong>save_file.sav</strong> here, or click to choose file</p>
+    <div class="path-helper" id="pathHelper">
+      <span>Windows Path:</span>
+      <code id="savePathText">%LOCALAPPDATA%Low\House House\Big Walk\user_data\save_games\</code>
+      <button type="button" class="btn-sm" id="btnCopyPath">📋 Copy</button>
+    </div>
     <input type="file" id="fileInput" class="hidden" accept=".sav,.json">
   </div>
 
@@ -381,10 +403,13 @@
 <script>
   let savePayload = null;
   const ITEM_LABEL_TO_ID = {};
+  const WINDOWS_SAVE_PATH = "%LOCALAPPDATA%Low\\House House\\Big Walk\\user_data\\save_games\\";
 
   // DOM Elements
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
+  const btnCopyPath = document.getElementById('btnCopyPath');
+  const pathHelper = document.getElementById('pathHelper');
   const editorContent = document.getElementById('editorContent');
   const unlocksContainer = document.getElementById('unlocksContainer');
   const gauntletContainer = document.getElementById('gauntletContainer');
@@ -426,6 +451,18 @@
       availableItemsList.appendChild(opt);
     });
   }
+
+  // Copy save file path to clipboard
+  function copySavePath(e) {
+    if (e) e.stopPropagation();
+    navigator.clipboard.writeText(WINDOWS_SAVE_PATH).then(() => {
+      btnCopyPath.textContent = "✓ Copied!";
+      setTimeout(() => { btnCopyPath.textContent = "📋 Copy"; }, 2000);
+    });
+  }
+
+  btnCopyPath.onclick = copySavePath;
+  pathHelper.onclick = (e) => e.stopPropagation();
 
   // File loading
   dropZone.onclick = () => fileInput.click();
