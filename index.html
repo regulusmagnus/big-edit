@@ -2,176 +2,403 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Big Walk Save Editor</title>
+  <title>Big Walk Save File Editor</title>
   <style>
-    :root { --bg: #121212; --panel: #1e1e1e; --accent: #4caf50; --text: #e0e0e0; --border: #333; }
-    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; margin: 0; }
-    .container { max-width: 850px; margin: 0 auto; }
-    .drop-zone { border: 2px dashed var(--border); padding: 2rem; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 1.5rem; background: var(--panel); }
-    .drop-zone:hover { border-color: var(--accent); }
-    .card { background: var(--panel); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
-    .row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #2a2a2a; }
-    .row:last-child { border-bottom: none; }
-    .badge { font-family: monospace; font-size: 0.75rem; background: #000; padding: 2px 6px; border-radius: 4px; color: #888; margin-left: 6px; }
-    input[type="number"], input[type="text"] { background: #121212; border: 1px solid var(--border); color: #fff; padding: 6px 10px; border-radius: 4px; }
-    button.btn-primary { background: var(--accent); color: #000; font-weight: bold; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
-    button.btn-primary:hover { opacity: 0.9; }
+    :root {
+      --bg: #121214;
+      --card-bg: #1a1a1e;
+      --card-border: #2c2d35;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --danger: #ef4444;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    h1, h2, h3 { margin-top: 0; }
+    h1 { font-size: 1.75rem; margin-bottom: 1.5rem; text-align: center; }
+
+    .drop-zone {
+      border: 2px dashed var(--card-border);
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 2.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background-color 0.2s;
+      margin-bottom: 1.5rem;
+    }
+    .drop-zone:hover { border-color: var(--accent); background: #222228; }
+    .drop-zone p { margin: 0; font-size: 1rem; color: var(--text-muted); }
+    .drop-zone strong { color: var(--accent); }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: #141417;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+    }
+    .toggle-row span { font-size: 0.95rem; font-weight: 500; }
+
+    /* Switch Component */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #374151;
+      transition: .2s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--accent); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Inventory Section */
+    .search-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      background: #141417;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .search-bar input:focus { outline: 1px solid var(--accent); }
+
+    .btn {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      border: none;
+      padding: 0.65rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+
+    .inventory-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      min-height: 48px;
+      padding: 0.75rem;
+      background: #141417;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+    }
+    .empty-msg {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin: auto;
+    }
+
+    .item-chip {
+      background: #24242a;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+    }
+    .item-chip button {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-weight: bold;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .action-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
     .hidden { display: none; }
-    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    .tag { background: #2a2a2a; padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px; }
-    .tag button { background: none; border: none; color: #ff5252; cursor: pointer; font-weight: bold; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>Big Walk Save Editor</h2>
+  <h1>Big Walk Save File Editor</h1>
 
   <div id="dropZone" class="drop-zone">
-    <p>📁 Drag and drop <strong>save_file.sav</strong> here, or click to browse</p>
-    <input type="file" id="fileInput" class="hidden">
+    <p>📁 Drag and drop <strong>save_file.sav</strong> here, or click to choose file</p>
+    <input type="file" id="fileInput" class="hidden" accept=".sav,.json">
   </div>
 
-  <div id="editorPanel" class="hidden">
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>General / Game State</h3>
-        <button id="saveBtn" class="btn-primary">💾 Export Modified Save</button>
-      </div>
-      <div id="entriesContainer"></div>
+  <div id="editorContent" class="hidden">
+    <div class="action-header">
+      <h2>Save Editor</h2>
+      <button id="exportBtn" class="btn">💾 Export Save File</button>
     </div>
 
+    <!-- Zone & Gate Progression -->
+    <div class="card">
+      <h3>Gates & Zone Unlocks</h3>
+      <div id="unlocksContainer" class="grid-2"></div>
+    </div>
+
+    <!-- Inventory Management -->
     <div class="card">
       <h3>Inventory Items</h3>
-      <div id="inventoryContainer" class="tag-list"></div>
-      <div style="margin-top: 1rem; display: flex; gap: 8px;">
-        <input type="text" id="newInvInput" placeholder="Item UUID or Name" style="flex-grow: 1;">
-        <button id="addInvBtn" style="padding: 6px 12px; cursor:pointer;">Add Item</button>
+      <div class="search-bar">
+        <input type="text" id="itemSearch" list="availableItemsList" placeholder="Search item to add (e.g. Compass, Flashlight)...">
+        <datalist id="availableItemsList"></datalist>
+        <button id="addItemBtn" class="btn">Add Item</button>
       </div>
+      <div id="inventoryContainer" class="inventory-list"></div>
     </div>
   </div>
 </div>
 
 <script>
-  // Static database compiled from your Python watcher runs
-  const ID_DATABASE = {
-    entries: {
-      "worldSeed": { label: "World Seed" },
-      "EndingGate": { label: "Ending Gate Active" },
-      "6577972e-a809-4436-8335-8e8c80d9f3d9": { label: "Binoculars Found" },
-      "f17b1d07-201c-40fe-9262-643d83cd9395": { label: "Main Checkpoint" },
-      "{steamID}keyLookIdHead": { label: "Head Cosmetic ID" },
-      "{steamID}keyLookIdTorso": { label: "Torso Cosmetic ID" },
-      "{steamID}keyLookIdLegs": { label: "Legs Cosmetic ID" },
-      "{steamID}keyWalkingProven": { label: "Walking Achievement" }
-    },
-    inventory: {
-      "e5f6g7h8-0000-0000-0000-000000000000": { label: "Flashlight" }
-    }
+  // Filtered Gates and Zone Keys
+  const UNLOCK_DEFINITIONS = [
+    { key: "SpawnHubGate", label: "Gate (Starting Area)", value: 1 },
+    { key: "HubShortcutToSportsCreek", label: "Gate (Red Tower)", value: 1 },
+    { key: "HubTunnel", label: "Gate (Yellow Tower)", value: 1 },
+    { key: "EndingGate", label: "Ending Gate", value: 1 },
+    { key: "LookoutLightRed", label: "Red Tower Unlocked", value: 1 },
+    { key: "LookoutLightGreen", label: "Green Tower Unlocked", value: 1 },
+    { key: "bigKeyIntro", label: "Intro Bridge Unlocked", value: 210 },
+    { key: "bigKeyRedZone", label: "Map Room Unlocked", value: 220 },
+    { key: "bigKeyBlueZone", label: "Train Unlocked", value: 221 },
+    { key: "bigKeyGreenZone", label: "Chairlift Unlocked", value: 222 },
+    { key: "bigKeyYellowZone", label: "Tunnels Unlocked", value: 223 }
+  ];
+
+  // Whitelisted inventory items (Excludes all Lights, Lamps, and Orbs)
+  const INVENTORY_DATABASE = {
+    "307d526d-780f-4fe2-b3fd-95f74b86319c": "Cowbell (blue)",
+    "a418a7cd-0945-44c1-9f7b-14eac4584cf1": "Cowbell (red)",
+    "cf0fd97f-0f39-4b0c-9474-54c665aeb2e9": "Cowbell (yellow)",
+    "c7ba38c6-f0fe-45fd-ad4a-6d1907b408ae": "Laser (map 1)",
+    "7c788690-d373-4b31-9be9-31bbb3ec1f88": "Laser (map 2)",
+    "cb8326bc-26c2-4214-8dc4-3ebafe0b5603": "Laser (map 3)",
+    "8fbe1de2-1ea0-4da4-8ef5-282f5d19b492": "Laser (red tower)",
+    "b2913ee0-2c3f-4582-a2f5-6c9f33b40b3b": "Laser (green tower)",
+    "d793e0fe-a145-496f-a348-2d8a65add9e8": "Compass",
+    "672cd949-1e5b-465a-a1cb-3860594f9e9f": "Map",
+    "63d13c11-3557-402d-ad0c-b7b255d5b3d8": "GPS Box",
+    "44015a0e-20ca-441a-b6e9-bbd28657b5f3": "Clock (green tower station)",
+    "d6270f5f-1ab7-4526-9e64-cccebde9389d": "Flashlight (red tower)",
+    "cbbf5ba7-0026-4737-9547-2e69187a2845": "Flashlight (red tunnel)",
+    "57632bfc-688b-40e4-aabd-d020f489b291": "Flashlight (green tunnel)",
+    "b25443e0-ec2d-4b55-b8e9-01ac48604ba5": "Flashlight (green tower)",
+    "0132c70b-9a0c-4b5a-be06-b9bb077a6e5a": "Scanner (red tower)",
+    "ed7b657e-5949-4a1e-8b82-e50ad2a8d785": "Scanner (green tower)",
+    "f40709b7-b15b-4131-ab88-ae08571224ac": "Binoculars (red tower)",
+    "16e1e4a2-aadf-43e1-a67b-f2513dd63303": "Binoculars (green tower)",
+    "730affd5-3139-473c-aaf2-4ecd5142c82f": "Backpack green (golf)",
+    "9057af3c-12c5-48d8-8251-07233a203861": "Belt green (north face)",
+    "03b99000-0640-4f67-9da4-8eac378a4158": "Gourd (basketball)",
+    "5fa8468a-dfaa-48fe-8057-46d47b9e56a5": "Gourd Case (balloon)",
+    "cd159c6e-88aa-4158-a11f-2790cf581052": "Walkie Talkie yellow (balloon)",
+    "00d7ed74-a4d9-4969-b8e2-bf8d4975ac8a": "Walkie Talkie blue (balloon)"
   };
 
-  let rawSaveData = null;
-  let detectedSteamId = "";
+  // Build name-to-UUID lookup map for search
+  const ITEM_LABEL_TO_ID = {};
+  for (const [id, label] of Object.entries(INVENTORY_DATABASE)) {
+    ITEM_LABEL_TO_ID[label.toLowerCase()] = id;
+  }
 
+  let savePayload = null;
+
+  // DOM Elements
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
-  const editorPanel = document.getElementById('editorPanel');
-  const entriesContainer = document.getElementById('entriesContainer');
+  const editorContent = document.getElementById('editorContent');
+  const unlocksContainer = document.getElementById('unlocksContainer');
   const inventoryContainer = document.getElementById('inventoryContainer');
+  const availableItemsList = document.getElementById('availableItemsList');
+  const itemSearch = document.getElementById('itemSearch');
+  const addItemBtn = document.getElementById('addItemBtn');
+  const exportBtn = document.getElementById('exportBtn');
 
+  // Populate datalist suggestions
+  Object.values(INVENTORY_DATABASE).sort().forEach(label => {
+    const opt = document.createElement('option');
+    opt.value = label;
+    availableItemsList.appendChild(opt);
+  });
+
+  // Drag & Drop handlers
   dropZone.onclick = () => fileInput.click();
-  fileInput.onchange = (e) => handleFile(e.target.files[0]);
-  dropZone.ondragover = (e) => { e.preventDefault(); };
+  fileInput.onchange = (e) => loadFile(e.target.files[0]);
+  dropZone.ondragover = (e) => e.preventDefault();
   dropZone.ondrop = (e) => {
     e.preventDefault();
-    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
   };
 
-  function handleFile(file) {
+  function loadFile(file) {
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        rawSaveData = JSON.parse(e.target.result);
-        renderEditor();
+        savePayload = JSON.parse(e.target.result);
+        if (!Array.isArray(savePayload.entries)) savePayload.entries = [];
+        if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
+        renderUI();
         dropZone.classList.add('hidden');
-        editorPanel.classList.remove('hidden');
+        editorContent.classList.remove('hidden');
       } catch (err) {
-        alert("Invalid JSON save file.");
+        alert("Could not parse file. Please upload a valid Big Walk save file.");
       }
     };
     reader.readAsText(file);
   }
 
-  function resolveKeyLabel(key) {
-    if (ID_DATABASE.entries[key]) return { label: ID_DATABASE.entries[key].label, cleanKey: key };
-    
-    // Check for 17-digit SteamID pattern prefix
-    const steamMatch = key.match(/^(\d{17})(.+)$/);
-    if (steamMatch) {
-      detectedSteamId = steamMatch[1];
-      const genericKey = `{steamID}${steamMatch[2]}`;
-      if (ID_DATABASE.entries[genericKey]) {
-        return { label: ID_DATABASE.entries[genericKey].label, cleanKey: genericKey };
-      }
-    }
-    return { label: key, cleanKey: key };
+  function isKeyPresent(key) {
+    return savePayload.entries.some(item => item && item.key === key);
   }
 
-  function renderEditor() {
-    entriesContainer.innerHTML = '';
+  function setKeyPresent(key, isEnabled, defaultValue) {
+    const index = savePayload.entries.findIndex(item => item && item.key === key);
+    if (isEnabled && index === -1) {
+      savePayload.entries.push({ key: key, value: defaultValue });
+    } else if (!isEnabled && index !== -1) {
+      savePayload.entries.splice(index, 1);
+    }
+  }
+
+  function renderUI() {
+    renderUnlocks();
+    renderInventory();
+  }
+
+  function renderUnlocks() {
+    unlocksContainer.innerHTML = '';
+    UNLOCK_DEFINITIONS.forEach(def => {
+      const active = isKeyPresent(def.key);
+      const row = document.createElement('div');
+      row.className = 'toggle-row';
+      row.innerHTML = `
+        <span>${def.label}</span>
+        <label class="switch">
+          <input type="checkbox" ${active ? 'checked' : ''}>
+          <span class="slider"></span>
+        </label>
+      `;
+      row.querySelector('input').addEventListener('change', (e) => {
+        setKeyPresent(def.key, e.target.checked, def.value);
+      });
+      unlocksContainer.appendChild(row);
+    });
+  }
+
+  function renderInventory() {
     inventoryContainer.innerHTML = '';
+    
+    // Display only known non-ignored items
+    const visibleItems = savePayload.inventory
+      .map((id, index) => ({ id, index, label: INVENTORY_DATABASE[id] }))
+      .filter(item => Boolean(item.label));
 
-    // 1. Render Entries Array
-    if (Array.isArray(rawSaveData.entries)) {
-      rawSaveData.entries.forEach((item, index) => {
-        const { label, cleanKey } = resolveKeyLabel(item.key);
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = `
-          <div>
-            <span>${label}</span>
-            <span class="badge">${item.key}</span>
-          </div>
-          <input type="number" value="${item.value}" data-index="${index}">
-        `;
-        row.querySelector('input').addEventListener('input', (e) => {
-          rawSaveData.entries[index].value = Number(e.target.value);
-        });
-        entriesContainer.appendChild(row);
-      });
+    if (visibleItems.length === 0) {
+      inventoryContainer.innerHTML = '<span class="empty-msg">No tracked items in inventory</span>';
+      return;
     }
 
-    // 2. Render Inventory List
-    if (Array.isArray(rawSaveData.inventory)) {
-      rawSaveData.inventory.forEach((itemId, index) => {
-        const name = ID_DATABASE.inventory[itemId]?.label || itemId;
-        const tag = document.createElement('div');
-        tag.className = 'tag';
-        tag.innerHTML = `<span>${name}</span> <button data-index="${index}">&times;</button>`;
-        tag.querySelector('button').onclick = () => {
-          rawSaveData.inventory.splice(index, 1);
-          renderEditor();
-        };
-        inventoryContainer.appendChild(tag);
-      });
+    visibleItems.forEach(item => {
+      const chip = document.createElement('div');
+      chip.className = 'item-chip';
+      chip.innerHTML = `
+        <span>${item.label}</span>
+        <button title="Remove item">&times;</button>
+      `;
+      chip.querySelector('button').onclick = () => {
+        savePayload.inventory.splice(item.index, 1);
+        renderInventory();
+      };
+      inventoryContainer.appendChild(chip);
+    });
+  }
+
+  function addInventoryItem() {
+    const query = itemSearch.value.trim().toLowerCase();
+    const targetId = ITEM_LABEL_TO_ID[query];
+
+    if (targetId) {
+      savePayload.inventory.push(targetId);
+      itemSearch.value = '';
+      renderInventory();
+    } else {
+      alert("Please select a valid item from the list.");
     }
   }
 
-  // Add Item to Inventory
-  document.getElementById('addInvBtn').onclick = () => {
-    const input = document.getElementById('newInvInput');
-    const val = input.value.trim();
-    if (val) {
-      if (!rawSaveData.inventory) rawSaveData.inventory = [];
-      rawSaveData.inventory.push(val);
-      input.value = '';
-      renderEditor();
-    }
-  };
+  addItemBtn.onclick = addInventoryItem;
+  itemSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addInventoryItem();
+  });
 
-  // Export Modified JSON file
-  document.getElementById('saveBtn').onclick = () => {
-    const blob = new Blob([JSON.stringify(rawSaveData, null, 2)], { type: "application/json" });
+  // Export Modified Save
+  exportBtn.onclick = () => {
+    const dataStr = JSON.stringify(savePayload, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
