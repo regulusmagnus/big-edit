@@ -24,13 +24,9 @@
       padding: 2rem 1rem;
     }
 
-    .container {
-      max-width: 820px;
-      margin: 0 auto;
-    }
-
-    h1, h2, h3 { margin-top: 0; }
-    h1 { font-size: 1.75rem; margin-bottom: 1.5rem; text-align: center; }
+    .container { max-width: 820px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; margin: 0 0 1.5rem; text-align: center; }
+    h2, h3, h4 { margin-top: 0; }
 
     .drop-zone {
       border: 2px dashed var(--card-border);
@@ -395,6 +391,22 @@
     return entry ? entry.value : null;
   }
 
+  // Ending Gate: 0 = Unlocked, 1 = Locked (Inverted state; never deleted)
+  function getEndingGateUnlocked() {
+    const val = getEntryValue("EndingGate");
+    return val === 0;
+  }
+
+  function setEndingGateUnlocked(isUnlocked) {
+    const targetValue = isUnlocked ? 0 : 1;
+    const entry = savePayload.entries.find(item => item && item.key === "EndingGate");
+    if (entry) {
+      entry.value = targetValue;
+    } else {
+      savePayload.entries.push({ key: "EndingGate", value: targetValue });
+    }
+  }
+
   function renderToggleGroup(container, definitions) {
     container.innerHTML = '';
     if (!definitions) return;
@@ -414,6 +426,26 @@
       });
       container.appendChild(row);
     });
+  }
+
+  function renderUnlocks() {
+    renderToggleGroup(unlocksContainer, UNLOCK_DEFINITIONS);
+
+    // Append dedicated Ending Gate row
+    const isUnlocked = getEndingGateUnlocked();
+    const endingRow = document.createElement('div');
+    endingRow.className = 'toggle-row';
+    endingRow.innerHTML = `
+      <span>Ending Gate Unlocked</span>
+      <label class="switch">
+        <input type="checkbox" ${isUnlocked ? 'checked' : ''}>
+        <span class="slider"></span>
+      </label>
+    `;
+    endingRow.querySelector('input').addEventListener('change', (e) => {
+      setEndingGateUnlocked(e.target.checked);
+    });
+    unlocksContainer.appendChild(endingRow);
   }
 
   function getTakenSlots(excludeGourdKey = null) {
@@ -605,7 +637,7 @@
   }
 
   function renderUI() {
-    renderToggleGroup(unlocksContainer, UNLOCK_DEFINITIONS);
+    renderUnlocks();
     renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
     renderGourds();
     renderInventory();

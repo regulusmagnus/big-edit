@@ -7,7 +7,10 @@ const UNLOCK_DEFINITIONS = [
   { key: "bigKeyRedZone", label: "Map Room Unlocked", value: 220 },
   { key: "bigKeyBlueZone", label: "Train Unlocked", value: 221 },
   { key: "bigKeyGreenZone", label: "Chairlift Unlocked", value: 222 },
-  { key: "bigKeyYellowZone", label: "Tunnels Unlocked", value: 223 }
+  { key: "bigKeyYellowZone", label: "Tunnels Unlocked", value: 223 },
+  { key: "BlackTowerInteriorDoor", label: "Black Tower Interior", value: 1},
+  { key: "bigKeyBoss", label: "Black Key Placed", value: 224 },
+  { key: "bigKeyOverflow", label: "bigKeyOverflow", value: 225 }
 ];
 
 // Radio Stations
@@ -96,7 +99,7 @@ const GOURD_DEFINITIONS = [
   },
   {
     key: "gourdPoetAndPreist",
-    label: "Poet and Priest",
+    label: "Poet & Priest",
     area: "Blue Tower",
     solved_value: 1252,
     item_id: "b10b2c30-96f5-4a31-9c04-e7d37ef0eab1"
@@ -121,6 +124,156 @@ const GOURD_DEFINITIONS = [
     area: "Yellow Tower",
     solved_value: 1142,
     item_id: "79e09b95-3a26-4a4e-a494-af599948f1f5"
+  },
+  {
+    key: "gourdCoordinatesHolding",
+    label: "Coordinates Holding",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdMemoryBombs",
+    label: "gourdMemoryBombs",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdPerspectiveCounting",
+    label: "Perspective Counting",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdTrapRoom",
+    label: "Trap Room",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdRingRoom",
+    label: "Ring Room",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdCabinFever",
+    label: "Cabin Fever",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdFlareRun",
+    label: "Flare Run",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdCenturonSong",
+    label: "Centuron Song",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdScoutBombs",
+    label: "Scout Bombs",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdIndoorSemaphore",
+    label: "Indoor Semaphore",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdEggHunt",
+    label: "Egg Hunt",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdMicrophoneArray",
+    label: "Microphone Array",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdConcert",
+    label: "Concert",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdBlindfoldCatwalk",
+    label: "Blindfold Catwalk",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdSignalFlags",
+    label: "Signal Flags",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdDancerAndSelecter",
+    label: "Dancer & Selector",
+    area: "Purple",
+  },
+  {
+    key: "gourdCabinFeverLong",
+    label: "Cabin Fever Long",
+    area: "Purple",
+  },
+  {
+    key: "gourdKickUpPits",
+    label: "Kick Up Pits",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdCoordinates",
+    label: "Coordinates",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdBlindfoldFishtrap",
+    label: "Blindfold Fishtrap",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdMediumSimPress",
+    label: "Medium Sim Press",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdBreadcrumbLoop",
+    label: "Breadcrumb Loop",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdCannonballCommute",
+    label: "Cannonball Commute",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdCharadesRooms",
+    label: "Charades Rooms",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdSpeedObby",
+    label: "Speed Obby",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdPoetAndPontiff",
+    label: "Poet & Pontiff",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdTileThief",
+    label: "Tile Thief",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdCenturionSeance",
+    label: "Centurion Seance",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdMusicalHoliday",
+    label: "Musical Holiday",
+    area: "Unsorted",
+  },
+  {
+    key: "gourdSingerAndSelecter",
+    label: "Singer & Selector",
+    area: "Unsorted",
   }
 ];
 
@@ -150,6 +303,27 @@ const GOURD_SLOTS = [
   { area: "Yellow Tower", slot_number: 3, value: 132 },
   { area: "Yellow Tower", slot_number: 4, value: 133 },
   { area: "Yellow Tower", slot_number: 5, value: 134 },
+  { area: "Black Tower", slot_number: 1, value: 140 },
+  { area: "Black Tower", slot_number: 2, value: 141 },
+  { area: "Black Tower", slot_number: 3, value: 142 },
+  { area: "Black Tower", slot_number: 4, value: 143 },
+  { area: "Black Tower", slot_number: 5, value: 144 },
+  { area: "Black Tower", slot_number: 6, value: 145 },
+  { area: "160", slot_number: 1, value: 160 },
+  { area: "160", slot_number: 2, value: 161 },
+  { area: "160", slot_number: 3, value: 162 },
+  { area: "160", slot_number: 4, value: 163 },
+  { area: "160", slot_number: 5, value: 164 },
+  { area: "160", slot_number: 6, value: 165 },
+  { area: "160", slot_number: 7, value: 166 },
+  { area: "160", slot_number: 8, value: 167 },
+  { area: "160", slot_number: 9, value: 168 },
+  { area: "160", slot_number: 10, value: 169 },
+  { area: "170", slot_number: 1, value: 170 },
+  { area: "170", slot_number: 2, value: 171 },
+  { area: "170", slot_number: 3, value: 172 },
+  { area: "170", slot_number: 4, value: 173 },
+  { area: "170", slot_number: 5, value: 174 }
 ];
 
 // Curated Inventory Items (Orbs, Lights, and Lamps excluded)
