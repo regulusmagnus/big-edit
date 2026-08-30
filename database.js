@@ -21,6 +21,87 @@ const RADIO_DEFINITIONS = [
   { key: "FmStationKosmische", label: "Radio Station 7", value: 1 }
 ];
 
+// Gourd Definitions (Mapped from id_dictionary)[cite: 2]
+const GOURD_DEFINITIONS = [
+  {
+    key: "gourdBasketball",
+    label: "Gourd (basketball)",
+    area: "Sports Creek",
+    solved_value: 1212,
+    item_id: "03b99000-0640-4f67-9da4-8eac378a4158"
+  },
+  {
+    key: "gourdFielding",
+    label: "Gourd (fielding)",
+    area: "Sports Creek",
+    solved_value: 1032,
+    item_id: "e0da06cd-6f68-44d9-8541-7616d8c4de9a"
+  },
+  {
+    key: "gourdWindowLabyrinth",
+    label: "Gourd (window labyrinth)",
+    area: "South Valley",
+    solved_value: 1182,
+    item_id: "e854b404-7ad4-4b2c-82f9-54d1b0bf6591"
+  },
+  {
+    key: "gourdEasySimPress",
+    label: "Gourd (easy sim press)",
+    area: "South Valley",
+    solved_value: 1082,
+    item_id: "aee838dc-281f-41fd-8f48-c97c10769172"
+  },
+  {
+    key: "gourdTellerWindow",
+    label: "Gourd (teller window)",
+    area: "South Valley",
+    solved_value: 1402,
+    item_id: "84f2b536-41a9-4571-8304-579b3f5cf584"
+  },
+  {
+    key: "gourdHighButton",
+    label: "Gourd (high button)",
+    area: "South Valley",
+    solved_value: 1012,
+    item_id: "78c2bd04-9f92-41c9-b605-6f079df4cc30"
+  },
+  {
+    key: "gourdCarousel",
+    label: "Gourd (carousel)",
+    area: "Green Zone",
+    solved_value: 1142,
+    item_id: "79e09b95-3a26-4a4e-a494-af599948f1f5"
+  }
+];
+
+// Gourd Placement Slots
+const GOURD_SLOTS = [
+  { area: "Intro Valley", slot_number: 1, value: 150 },
+  { area: "Intro Valley", slot_number: 2, value: 151 },
+  { area: "Intro Valley", slot_number: 3, value: 152 },
+  { area: "Intro Valley", slot_number: 4, value: 153 },
+  { area: "Red Tower", slot_number: 1, value: 100 },
+  { area: "Red Tower", slot_number: 2, value: 101 },
+  { area: "Red Tower", slot_number: 3, value: 102 },
+  { area: "Red Tower", slot_number: 4, value: 103 },
+  { area: "Red Tower", slot_number: 5, value: 104 },
+  { area: "Green Tower", slot_number: 1, value: 110 },
+  { area: "Green Tower", slot_number: 2, value: 111 },
+  { area: "Green Tower", slot_number: 3, value: 112 },
+  { area: "Green Tower", slot_number: 4, value: 113 },
+  { area: "Green Tower", slot_number: 5, value: 114 },
+  { area: "Blue Tower", slot_number: 1, value: 120 },
+  { area: "Blue Tower", slot_number: 2, value: 121 },
+  { area: "Blue Tower", slot_number: 3, value: 122 },
+  { area: "Blue Tower", slot_number: 4, value: 123 },
+  { area: "Blue Tower", slot_number: 5, value: 124 },
+  { area: "Yellow Tower", slot_number: 1, value: 130 },
+  { area: "Yellow Tower", slot_number: 2, value: 131 },
+  { area: "Yellow Tower", slot_number: 3, value: 132 },
+  { area: "Yellow Tower", slot_number: 4, value: 133 },
+  { area: "Yellow Tower", slot_number: 5, value: 134 },
+];
+
 // Curated Inventory Items (Orbs, Lights, and Lamps excluded)
 const INVENTORY_DATABASE = {
   "307d526d-780f-4fe2-b3fd-95f74b86319c": "Cowbell (blue)",

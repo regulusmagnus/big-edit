@@ -95,7 +95,6 @@
       border: 1px solid var(--card-border);
       border-radius: 8px;
     }
-    .toggle-row span { font-size: 0.95rem; font-weight: 500; }
 
     /* Switch Component */
     .switch {
@@ -103,6 +102,7 @@
       display: inline-block;
       width: 44px;
       height: 24px;
+      flex-shrink: 0;
     }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
@@ -127,12 +127,65 @@
     input:checked + .slider { background-color: var(--accent); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    /* Inventory Section */
-    .search-bar {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.25rem;
+    /* Gourd Styles */
+    .area-group { margin-bottom: 1.5rem; }
+    .area-group:last-child { margin-bottom: 0; }
+    .area-title {
+      font-size: 0.95rem;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
+    .gourd-card {
+      background: #141417;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.6rem;
+    }
+    .gourd-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gourd-controls {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #222228;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.25rem;
+      font-size: 0.9rem;
+    }
+    .radio-group {
+      display: flex;
+      gap: 0.85rem;
+      align-items: center;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .radio-group input[type="radio"]:checked + span {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .slot-select {
+      background: #1e1e24;
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.35rem 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    /* Inventory Section */
+    .search-bar { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
     .search-bar input {
       flex: 1;
       padding: 0.65rem 1rem;
@@ -171,7 +224,6 @@
       font-size: 0.9rem;
       margin: auto;
     }
-
     .item-chip {
       background: #24242a;
       border: 1px solid var(--card-border);
@@ -219,7 +271,7 @@
       <button id="exportBtn" class="btn">💾 Export Save File</button>
     </div>
 
-    <!-- Gates & Zone Unlocks (Collapsible, starts closed) -->
+    <!-- Gates & Zone Unlocks (Collapsible) -->
     <details class="card">
       <summary>Gates & Zone Unlocks</summary>
       <div class="collapsible-body">
@@ -227,11 +279,19 @@
       </div>
     </details>
 
-    <!-- Radio Stations (Collapsible, starts closed) -->
+    <!-- Radio Stations (Collapsible) -->
     <details class="card">
       <summary>Radio Stations</summary>
       <div class="collapsible-body">
         <div id="radiosContainer" class="grid-2"></div>
+      </div>
+    </details>
+
+    <!-- Gourds (Collapsible) -->
+    <details class="card">
+      <summary>Gourds</summary>
+      <div class="collapsible-body">
+        <div id="gourdsContainer"></div>
       </div>
     </details>
 
@@ -261,6 +321,7 @@
   const editorContent = document.getElementById('editorContent');
   const unlocksContainer = document.getElementById('unlocksContainer');
   const radiosContainer = document.getElementById('radiosContainer');
+  const gourdsContainer = document.getElementById('gourdsContainer');
   const inventoryContainer = document.getElementById('inventoryContainer');
   const availableItemsList = document.getElementById('availableItemsList');
   const itemSearch = document.getElementById('itemSearch');
@@ -322,6 +383,11 @@
     }
   }
 
+  function getEntryValue(key) {
+    const entry = savePayload.entries.find(item => item && item.key === key);
+    return entry ? entry.value : null;
+  }
+
   function renderToggleGroup(container, definitions) {
     container.innerHTML = '';
     if (!definitions) return;
@@ -343,16 +409,163 @@
     });
   }
 
-  function renderUI() {
-    renderToggleGroup(unlocksContainer, UNLOCK_DEFINITIONS);
-    renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
+  function getTakenSlots(excludeGourdKey = null) {
+    const taken = new Set();
+    if (!savePayload || !Array.isArray(savePayload.entries) || typeof GOURD_DEFINITIONS === 'undefined') {
+      return taken;
+    }
+
+    GOURD_DEFINITIONS.forEach(g => {
+      if (g.key === excludeGourdKey) return;
+      const entry = savePayload.entries.find(e => e && e.key === g.key);
+      if (entry && entry.value !== g.solved_value && !savePayload.inventory.includes(g.item_id)) {
+        taken.add(Number(entry.value));
+      }
+    });
+
+    return taken;
+  }
+
+  function getGourdState(gourd) {
+    const isSolved = isKeyPresent(gourd.key);
+    if (!isSolved) {
+      return { solved: false, mode: 'at_puzzle', slotValue: null };
+    }
+
+    const inInventory = savePayload.inventory.includes(gourd.item_id);
+    const currentValue = getEntryValue(gourd.key);
+
+    if (inInventory) {
+      return { solved: true, mode: 'inventory', slotValue: null };
+    }
+    if (currentValue === gourd.solved_value) {
+      return { solved: true, mode: 'at_puzzle', slotValue: null };
+    }
+    return { solved: true, mode: 'placed', slotValue: currentValue };
+  }
+
+  function applyGourdState(gourd, isSolved, mode, slotValue) {
+    // 1. Remove existing entry & inventory item
+    const entryIdx = savePayload.entries.findIndex(e => e && e.key === gourd.key);
+    if (entryIdx !== -1) savePayload.entries.splice(entryIdx, 1);
+
+    savePayload.inventory = savePayload.inventory.filter(id => id !== gourd.item_id);
+
+    // 2. Apply new state
+    if (isSolved) {
+      if (mode === 'at_puzzle') {
+        savePayload.entries.push({ key: gourd.key, value: gourd.solved_value });
+      } else if (mode === 'inventory') {
+        savePayload.entries.push({ key: gourd.key, value: gourd.solved_value });
+        savePayload.inventory.push(gourd.item_id);
+      } else if (mode === 'placed') {
+        savePayload.entries.push({ key: gourd.key, value: Number(slotValue) });
+      }
+    }
+
     renderInventory();
+    renderGourds();
+  }
+
+  function renderGourds() {
+    gourdsContainer.innerHTML = '';
+    if (typeof GOURD_DEFINITIONS === 'undefined' || typeof GOURD_SLOTS === 'undefined') return;
+
+    // Group gourds by Area
+    const areaGroups = {};
+    GOURD_DEFINITIONS.forEach(gourd => {
+      const area = gourd.area || "Unknown Area";
+      if (!areaGroups[area]) areaGroups[area] = [];
+      areaGroups[area].push(gourd);
+    });
+
+    Object.keys(areaGroups).forEach(area => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'area-group';
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'area-title';
+      titleEl.textContent = area;
+      groupEl.appendChild(titleEl);
+
+      areaGroups[area].forEach(gourd => {
+        const state = getGourdState(gourd);
+        const takenSlots = getTakenSlots(gourd.key);
+
+        // Filter slots to only those unassigned or currently held by this gourd
+        const availableSlots = GOURD_SLOTS.filter(slot => {
+          return !takenSlots.has(Number(slot.value)) || Number(slot.value) === Number(state.slotValue);
+        });
+
+        // Determine effective slot selection
+        let activeSlotValue = state.slotValue;
+        if (!availableSlots.some(s => Number(s.value) === Number(activeSlotValue))) {
+          activeSlotValue = availableSlots[0]?.value ?? null;
+        }
+
+        const slotOptions = availableSlots.length > 0
+          ? availableSlots.map(slot => {
+              const selected = Number(slot.value) === Number(activeSlotValue) ? 'selected' : '';
+              return `<option value="${slot.value}" ${selected}>${slot.area} - Slot ${slot.slot_number}</option>`;
+            }).join('')
+          : `<option disabled>No Slots Available</option>`;
+
+        const card = document.createElement('div');
+        card.className = 'gourd-card';
+        card.innerHTML = `
+          <div class="gourd-header">
+            <span><strong>${gourd.label}</strong></span>
+            <label class="switch">
+              <input type="checkbox" class="gourd-solve-toggle" ${state.solved ? 'checked' : ''}>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="gourd-controls ${state.solved ? '' : 'hidden'}">
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="mode_${gourd.key}" value="at_puzzle" ${state.mode === 'at_puzzle' ? 'checked' : ''}>
+                <span>At Puzzle</span>
+              </label>
+              <label>
+                <input type="radio" name="mode_${gourd.key}" value="inventory" ${state.mode === 'inventory' ? 'checked' : ''}>
+                <span>Inventory</span>
+              </label>
+              <label>
+                <input type="radio" name="mode_${gourd.key}" value="placed" ${state.mode === 'placed' ? 'checked' : ''}>
+                <span>Placed</span>
+              </label>
+            </div>
+            <div class="slot-select-wrapper ${state.mode === 'placed' ? '' : 'hidden'}">
+              <select class="slot-select">${slotOptions}</select>
+            </div>
+          </div>
+        `;
+
+        const solveToggle = card.querySelector('.gourd-solve-toggle');
+        const radioInputs = card.querySelectorAll(`input[name="mode_${gourd.key}"]`);
+        const slotSelect = card.querySelector('.slot-select');
+
+        function triggerUpdate() {
+          const solved = solveToggle.checked;
+          const selectedMode = Array.from(radioInputs).find(r => r.checked)?.value || 'at_puzzle';
+          const selectedSlot = slotSelect.value;
+          applyGourdState(gourd, solved, selectedMode, selectedSlot);
+        }
+
+        solveToggle.addEventListener('change', triggerUpdate);
+        radioInputs.forEach(radio => radio.addEventListener('change', triggerUpdate));
+        slotSelect.addEventListener('change', triggerUpdate);
+
+        groupEl.appendChild(card);
+      });
+
+      gourdsContainer.appendChild(groupEl);
+    });
   }
 
   function renderInventory() {
     inventoryContainer.innerHTML = '';
     
-    // Display only known non-ignored items
     const visibleItems = savePayload.inventory
       .map((id, index) => ({ id, index, label: INVENTORY_DATABASE[id] }))
       .filter(item => Boolean(item.label));
@@ -372,9 +585,17 @@
       chip.querySelector('button').onclick = () => {
         savePayload.inventory.splice(item.index, 1);
         renderInventory();
+        renderGourds();
       };
       inventoryContainer.appendChild(chip);
     });
+  }
+
+  function renderUI() {
+    renderToggleGroup(unlocksContainer, UNLOCK_DEFINITIONS);
+    renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
+    renderGourds();
+    renderInventory();
   }
 
   function addInventoryItem() {
@@ -385,6 +606,7 @@
       savePayload.inventory.push(targetId);
       itemSearch.value = '';
       renderInventory();
+      renderGourds();
     } else {
       alert("Please select a valid item from the list.");
     }
