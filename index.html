@@ -43,15 +43,41 @@
       margin-bottom: 1.5rem;
     }
     .drop-zone:hover { border-color: var(--accent); background: #222228; }
-    .drop-zone p { margin: 0; font-size: 1rem; color: var(--text-muted); }
+    .drop-zone p { margin: 0; color: var(--text-muted); }
     .drop-zone strong { color: var(--accent); }
 
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      padding: 1.5rem;
+      padding: 1.25rem 1.5rem;
       margin-bottom: 1.5rem;
+    }
+
+    /* Native Accordion Styling */
+    details.card summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      font-size: 1.15rem;
+      font-weight: 600;
+      list-style: none;
+    }
+    details.card summary::-webkit-details-marker { display: none; }
+    details.card summary::after {
+      content: "▾";
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+    details.card[open] summary::after {
+      transform: rotate(180deg);
+    }
+    .collapsible-body {
+      padding-top: 1.25rem;
+      cursor: default;
     }
 
     .grid-2 {
@@ -193,13 +219,23 @@
       <button id="exportBtn" class="btn">💾 Export Save File</button>
     </div>
 
-    <!-- Zone & Gate Progression -->
-    <div class="card">
-      <h3>Gates & Zone Unlocks</h3>
-      <div id="unlocksContainer" class="grid-2"></div>
-    </div>
+    <!-- Gates & Zone Unlocks (Collapsible, starts closed) -->
+    <details class="card">
+      <summary>Gates & Zone Unlocks</summary>
+      <div class="collapsible-body">
+        <div id="unlocksContainer" class="grid-2"></div>
+      </div>
+    </details>
 
-    <!-- Inventory Management -->
+    <!-- Radio Stations (Collapsible, starts closed) -->
+    <details class="card">
+      <summary>Radio Stations</summary>
+      <div class="collapsible-body">
+        <div id="radiosContainer" class="grid-2"></div>
+      </div>
+    </details>
+
+    <!-- Inventory Items -->
     <div class="card">
       <h3>Inventory Items</h3>
       <div class="search-bar">
@@ -224,6 +260,7 @@
   const fileInput = document.getElementById('fileInput');
   const editorContent = document.getElementById('editorContent');
   const unlocksContainer = document.getElementById('unlocksContainer');
+  const radiosContainer = document.getElementById('radiosContainer');
   const inventoryContainer = document.getElementById('inventoryContainer');
   const availableItemsList = document.getElementById('availableItemsList');
   const itemSearch = document.getElementById('itemSearch');
@@ -232,10 +269,7 @@
 
   // Initialize lookup maps and UI datalist using external database.js
   function initDatabaseMappings() {
-    if (typeof INVENTORY_DATABASE === 'undefined' || typeof UNLOCK_DEFINITIONS === 'undefined') {
-      alert("Error: database.js not found. Make sure database.js is in the same folder.");
-      return;
-    }
+    if (typeof INVENTORY_DATABASE === 'undefined') return;
 
     for (const [id, label] of Object.entries(INVENTORY_DATABASE)) {
       ITEM_LABEL_TO_ID[label.toLowerCase()] = id;
@@ -288,14 +322,10 @@
     }
   }
 
-  function renderUI() {
-    renderUnlocks();
-    renderInventory();
-  }
-
-  function renderUnlocks() {
-    unlocksContainer.innerHTML = '';
-    UNLOCK_DEFINITIONS.forEach(def => {
+  function renderToggleGroup(container, definitions) {
+    container.innerHTML = '';
+    if (!definitions) return;
+    definitions.forEach(def => {
       const active = isKeyPresent(def.key);
       const row = document.createElement('div');
       row.className = 'toggle-row';
@@ -309,8 +339,14 @@
       row.querySelector('input').addEventListener('change', (e) => {
         setKeyPresent(def.key, e.target.checked, def.value);
       });
-      unlocksContainer.appendChild(row);
+      container.appendChild(row);
     });
+  }
+
+  function renderUI() {
+    renderToggleGroup(unlocksContainer, UNLOCK_DEFINITIONS);
+    renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
+    renderInventory();
   }
 
   function renderInventory() {

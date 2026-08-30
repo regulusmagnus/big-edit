@@ -3,13 +3,16 @@ const UNLOCK_DEFINITIONS = [
   { key: "SpawnHubGate", label: "Gate (Starting Area)", value: 1 },
   { key: "HubShortcutToSportsCreek", label: "Gate (Red Tower)", value: 1 },
   { key: "HubTunnel", label: "Gate (Yellow Tower)", value: 1 },
-  { key: "LookoutLightRed", label: "Red Tower Unlocked", value: 1 },
-  { key: "LookoutLightGreen", label: "Green Tower Unlocked", value: 1 },
   { key: "bigKeyIntro", label: "Intro Bridge Unlocked", value: 210 },
   { key: "bigKeyRedZone", label: "Map Room Unlocked", value: 220 },
   { key: "bigKeyBlueZone", label: "Train Unlocked", value: 221 },
   { key: "bigKeyGreenZone", label: "Chairlift Unlocked", value: 222 },
   { key: "bigKeyYellowZone", label: "Tunnels Unlocked", value: 223 }
+];
+
+// Radio Stations
+const RADIO_DEFINITIONS = [
+  { key: "FmStationBreathwork", label: "Radio Station 1", value: 1 }
 ];
 
 // Curated Inventory Items (Orbs, Lights, and Lamps excluded)
