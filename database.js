@@ -175,7 +175,9 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdCenturonSong",
     label: "Centuron Song",
-    area: "Unsorted",
+    area: "Yellow Tower",
+    solved_value: 1472,
+    item_id: "97454e67-9a62-495b-9fa9-7b01adcb5e04"
   },
   {
     key: "gourdScoutBombs",
@@ -190,7 +192,9 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdEggHunt",
     label: "Egg Hunt",
-    area: "Unsorted",
+    area: "Yellow Tower",
+    solved_value: 1392,
+    item_id: "bfd723fd-83a5-4942-8eb4-6e3586ec60eb"
   },
   {
     key: "gourdMicrophoneArray",
@@ -200,7 +204,9 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdConcert",
     label: "Concert",
-    area: "Unsorted",
+    area: "Yellow Tower",
+    solved_value: 1222,
+    item_id: "f566452b-bde4-4328-b78a-f8a05e993f87"
   },
   {
     key: "gourdBlindfoldCatwalk",
