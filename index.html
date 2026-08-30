@@ -534,10 +534,10 @@
     const hasOrb = savePayload.inventory.includes(beacon.orb_id);
     const lightVal = getEntryValue(beacon.light_id);
 
-    if (hasOrb || lightVal === 0) {
+    if (hasOrb) {
       return 'inventory';
     }
-    if (lightVal === 1) {
+    if (lightVal === 1 && !hasOrb) {
       return 'on';
     }
     return 'off';
