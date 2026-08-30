@@ -212,59 +212,12 @@
   </div>
 </div>
 
+<!-- Load Database Definitions -->
+<script src="database.js"></script>
+
 <script>
-  // Filtered Gates and Zone Keys
-  const UNLOCK_DEFINITIONS = [
-    { key: "SpawnHubGate", label: "Gate (Starting Area)", value: 1 },
-    { key: "HubShortcutToSportsCreek", label: "Gate (Red Tower)", value: 1 },
-    { key: "HubTunnel", label: "Gate (Yellow Tower)", value: 1 },
-    { key: "EndingGate", label: "Ending Gate", value: 1 },
-    { key: "LookoutLightRed", label: "Red Tower Unlocked", value: 1 },
-    { key: "LookoutLightGreen", label: "Green Tower Unlocked", value: 1 },
-    { key: "bigKeyIntro", label: "Intro Bridge Unlocked", value: 210 },
-    { key: "bigKeyRedZone", label: "Map Room Unlocked", value: 220 },
-    { key: "bigKeyBlueZone", label: "Train Unlocked", value: 221 },
-    { key: "bigKeyGreenZone", label: "Chairlift Unlocked", value: 222 },
-    { key: "bigKeyYellowZone", label: "Tunnels Unlocked", value: 223 }
-  ];
-
-  // Whitelisted inventory items (Excludes all Lights, Lamps, and Orbs)
-  const INVENTORY_DATABASE = {
-    "307d526d-780f-4fe2-b3fd-95f74b86319c": "Cowbell (blue)",
-    "a418a7cd-0945-44c1-9f7b-14eac4584cf1": "Cowbell (red)",
-    "cf0fd97f-0f39-4b0c-9474-54c665aeb2e9": "Cowbell (yellow)",
-    "c7ba38c6-f0fe-45fd-ad4a-6d1907b408ae": "Laser (map 1)",
-    "7c788690-d373-4b31-9be9-31bbb3ec1f88": "Laser (map 2)",
-    "cb8326bc-26c2-4214-8dc4-3ebafe0b5603": "Laser (map 3)",
-    "8fbe1de2-1ea0-4da4-8ef5-282f5d19b492": "Laser (red tower)",
-    "b2913ee0-2c3f-4582-a2f5-6c9f33b40b3b": "Laser (green tower)",
-    "d793e0fe-a145-496f-a348-2d8a65add9e8": "Compass",
-    "672cd949-1e5b-465a-a1cb-3860594f9e9f": "Map",
-    "63d13c11-3557-402d-ad0c-b7b255d5b3d8": "GPS Box",
-    "44015a0e-20ca-441a-b6e9-bbd28657b5f3": "Clock (green tower station)",
-    "d6270f5f-1ab7-4526-9e64-cccebde9389d": "Flashlight (red tower)",
-    "cbbf5ba7-0026-4737-9547-2e69187a2845": "Flashlight (red tunnel)",
-    "57632bfc-688b-40e4-aabd-d020f489b291": "Flashlight (green tunnel)",
-    "b25443e0-ec2d-4b55-b8e9-01ac48604ba5": "Flashlight (green tower)",
-    "0132c70b-9a0c-4b5a-be06-b9bb077a6e5a": "Scanner (red tower)",
-    "ed7b657e-5949-4a1e-8b82-e50ad2a8d785": "Scanner (green tower)",
-    "f40709b7-b15b-4131-ab88-ae08571224ac": "Binoculars (red tower)",
-    "16e1e4a2-aadf-43e1-a67b-f2513dd63303": "Binoculars (green tower)",
-    "730affd5-3139-473c-aaf2-4ecd5142c82f": "Backpack green (golf)",
-    "9057af3c-12c5-48d8-8251-07233a203861": "Belt green (north face)",
-    "03b99000-0640-4f67-9da4-8eac378a4158": "Gourd (basketball)",
-    "5fa8468a-dfaa-48fe-8057-46d47b9e56a5": "Gourd Case (balloon)",
-    "cd159c6e-88aa-4158-a11f-2790cf581052": "Walkie Talkie yellow (balloon)",
-    "00d7ed74-a4d9-4969-b8e2-bf8d4975ac8a": "Walkie Talkie blue (balloon)"
-  };
-
-  // Build name-to-UUID lookup map for search
-  const ITEM_LABEL_TO_ID = {};
-  for (const [id, label] of Object.entries(INVENTORY_DATABASE)) {
-    ITEM_LABEL_TO_ID[label.toLowerCase()] = id;
-  }
-
   let savePayload = null;
+  const ITEM_LABEL_TO_ID = {};
 
   // DOM Elements
   const dropZone = document.getElementById('dropZone');
@@ -277,14 +230,25 @@
   const addItemBtn = document.getElementById('addItemBtn');
   const exportBtn = document.getElementById('exportBtn');
 
-  // Populate datalist suggestions
-  Object.values(INVENTORY_DATABASE).sort().forEach(label => {
-    const opt = document.createElement('option');
-    opt.value = label;
-    availableItemsList.appendChild(opt);
-  });
+  // Initialize lookup maps and UI datalist using external database.js
+  function initDatabaseMappings() {
+    if (typeof INVENTORY_DATABASE === 'undefined' || typeof UNLOCK_DEFINITIONS === 'undefined') {
+      alert("Error: database.js not found. Make sure database.js is in the same folder.");
+      return;
+    }
 
-  // Drag & Drop handlers
+    for (const [id, label] of Object.entries(INVENTORY_DATABASE)) {
+      ITEM_LABEL_TO_ID[label.toLowerCase()] = id;
+    }
+
+    Object.values(INVENTORY_DATABASE).sort().forEach(label => {
+      const opt = document.createElement('option');
+      opt.value = label;
+      availableItemsList.appendChild(opt);
+    });
+  }
+
+  // File loading
   dropZone.onclick = () => fileInput.click();
   fileInput.onchange = (e) => loadFile(e.target.files[0]);
   dropZone.ondragover = (e) => e.preventDefault();
@@ -406,6 +370,8 @@
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  initDatabaseMappings();
 </script>
 </body>
 </html>
