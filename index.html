@@ -297,6 +297,14 @@
       </div>
     </details>
 
+    <!-- Orb Beacons (Collapsible) -->
+    <details class="card">
+      <summary>Orb Beacons</summary>
+      <div class="collapsible-body">
+        <div id="orbBeaconsContainer" class="grid-2"></div>
+      </div>
+    </details>
+
     <!-- Gourds (Collapsible) -->
     <details class="card">
       <summary>Gourds</summary>
@@ -332,6 +340,7 @@
   const unlocksContainer = document.getElementById('unlocksContainer');
   const gauntletContainer = document.getElementById('gauntletContainer');
   const radiosContainer = document.getElementById('radiosContainer');
+  const orbBeaconsContainer = document.getElementById('orbBeaconsContainer');
   const gourdsContainer = document.getElementById('gourdsContainer');
   const inventoryContainer = document.getElementById('inventoryContainer');
   const availableItemsList = document.getElementById('availableItemsList');
@@ -454,6 +463,77 @@
       setEndingGateUnlocked(e.target.checked);
     });
     unlocksContainer.appendChild(endingRow);
+  }
+
+  // Orb Beacons State Logic
+  function getOrbBeaconState(beacon) {
+    const hasOrb = savePayload.inventory.includes(beacon.orb_id);
+    const lightVal = getEntryValue(beacon.light_id);
+
+    if (hasOrb || lightVal === 0) {
+      return 'inventory';
+    }
+    if (lightVal === 1) {
+      return 'on';
+    }
+    return 'off';
+  }
+
+  function applyOrbBeaconState(beacon, mode) {
+    // 1. Remove light entry and orb from inventory
+    const entryIdx = savePayload.entries.findIndex(e => e && e.key === beacon.light_id);
+    if (entryIdx !== -1) savePayload.entries.splice(entryIdx, 1);
+
+    savePayload.inventory = savePayload.inventory.filter(id => id !== beacon.orb_id);
+
+    // 2. Apply chosen state
+    if (mode === 'on') {
+      savePayload.entries.push({ key: beacon.light_id, value: 1 });
+    } else if (mode === 'inventory') {
+      savePayload.entries.push({ key: beacon.light_id, value: 0 });
+      savePayload.inventory.push(beacon.orb_id);
+    } // 'off' leaves both removed
+
+    renderInventory();
+    renderOrbBeacons();
+  }
+
+  function renderOrbBeacons() {
+    orbBeaconsContainer.innerHTML = '';
+    if (typeof ORB_BEACON_DATABASE === 'undefined') return;
+
+    ORB_BEACON_DATABASE.forEach(beacon => {
+      const state = getOrbBeaconState(beacon);
+      const row = document.createElement('div');
+      row.className = 'toggle-row';
+      const radioName = `beacon_${beacon.coordinate_1}_${beacon.coordinate_2}`;
+
+      row.innerHTML = `
+        <span>(${beacon.coordinate_1}, ${beacon.coordinate_2})</span>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="${radioName}" value="off" ${state === 'off' ? 'checked' : ''}>
+            <span>Off</span>
+          </label>
+          <label>
+            <input type="radio" name="${radioName}" value="on" ${state === 'on' ? 'checked' : ''}>
+            <span>On</span>
+          </label>
+          <label>
+            <input type="radio" name="${radioName}" value="inventory" ${state === 'inventory' ? 'checked' : ''}>
+            <span>Inventory</span>
+          </label>
+        </div>
+      `;
+
+      row.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          applyOrbBeaconState(beacon, e.target.value);
+        });
+      });
+
+      orbBeaconsContainer.appendChild(row);
+    });
   }
 
   function getTakenSlots(excludeGourdKey = null) {
@@ -648,6 +728,7 @@
         savePayload.inventory.splice(item.index, 1);
         renderInventory();
         renderGourds();
+        renderOrbBeacons();
       };
       inventoryContainer.appendChild(chip);
     });
@@ -657,6 +738,7 @@
     renderUnlocks();
     renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
     renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
+    renderOrbBeacons();
     renderGourds();
     renderInventory();
   }
@@ -670,6 +752,7 @@
       itemSearch.value = '';
       renderInventory();
       renderGourds();
+      renderOrbBeacons();
     } else {
       alert("Please select a valid item from the list.");
     }
