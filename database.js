@@ -64,6 +64,13 @@ const GOURD_DEFINITIONS = [
     item_id: "e0da06cd-6f68-44d9-8541-7616d8c4de9a"
   },
   {
+    key: "gourdCannonBall",
+    label: "Fielding",
+    area: "Red Tower",
+    solved_value: 1042,
+    item_id: "787f8a29-8752-4f45-b3bd-fc37bdc57ca2"
+  },
+  {
     key: "gourdWindowLabyrinth",
     label: "Window Labyrinth",
     area: "Red Tower",
@@ -79,6 +86,34 @@ const GOURD_DEFINITIONS = [
     key: "gourdOpticalTelegraph",
     label: "Optical Telegraph",
     area: "Green Tower"
+  },
+  {
+    key: "gourdObservationRoom",
+    label: "Observation Room",
+    area: "Blue Tower",
+    solved_value: 1172,
+    item_id: "ead91cc2-57d8-4556-878a-cb22174ff7b6"
+  },
+  {
+    key: "gourdPoetAndPreist",
+    label: "Poet and Priest",
+    area: "Blue Tower",
+    solved_value: 1252,
+    item_id: "b10b2c30-96f5-4a31-9c04-e7d37ef0eab1"
+  },
+  {
+    key: "gourdInvisibleInk",
+    label: "Invisible Ink",
+    area: "Blue Tower",
+    solved_value: 1052,
+    item_id: "7dba3ab6-54c3-4cf4-812f-a108d1d6c858"
+  },
+  {
+    key: "gourdObby",
+    label: "Obby (Jungle Gym)",
+    area: "Blue Tower",
+    solved_value: 1132,
+    item_id: "9c0a4126-6e80-4ba4-aec0-533ff0da9dbf"
   },
   {
     key: "gourdCarousel",
