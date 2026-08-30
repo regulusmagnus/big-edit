@@ -187,7 +187,9 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdIndoorSemaphore",
     label: "Indoor Semaphore",
-    area: "Unsorted",
+    area: "Yellow Tower",
+    solved_value: 1232,
+    item_id: "fe48178e-1ccc-41d4-9642-3b974efa2184"
   },
   {
     key: "gourdEggHunt",
@@ -211,7 +213,9 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdBlindfoldCatwalk",
     label: "Blindfold Catwalk",
-    area: "Unsorted",
+    area: "Yellow Tower",
+    solved_value: 1532,
+    item_id: "36332988-68d9-4e33-9cbb-dacd156dea83"
   },
   {
     key: "gourdSignalFlags",
