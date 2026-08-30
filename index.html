@@ -247,7 +247,6 @@
       font-size: 1rem;
       line-height: 1;
     }
-
     .action-header {
       display: flex;
       justify-content: space-between;
@@ -279,6 +278,14 @@
       <summary>Gates & Zone Unlocks</summary>
       <div class="collapsible-body">
         <div id="unlocksContainer" class="grid-2"></div>
+      </div>
+    </details>
+
+    <!-- Endgame Gauntlet (Collapsible) -->
+    <details class="card">
+      <summary>Endgame Gauntlet</summary>
+      <div class="collapsible-body">
+        <div id="gauntletContainer" class="grid-2"></div>
       </div>
     </details>
 
@@ -323,6 +330,7 @@
   const fileInput = document.getElementById('fileInput');
   const editorContent = document.getElementById('editorContent');
   const unlocksContainer = document.getElementById('unlocksContainer');
+  const gauntletContainer = document.getElementById('gauntletContainer');
   const radiosContainer = document.getElementById('radiosContainer');
   const gourdsContainer = document.getElementById('gourdsContainer');
   const inventoryContainer = document.getElementById('inventoryContainer');
@@ -638,6 +646,7 @@
 
   function renderUI() {
     renderUnlocks();
+    renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
     renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
     renderGourds();
     renderInventory();

@@ -9,8 +9,20 @@ const UNLOCK_DEFINITIONS = [
   { key: "bigKeyGreenZone", label: "Chairlift Unlocked", value: 222 },
   { key: "bigKeyYellowZone", label: "Tunnels Unlocked", value: 223 },
   { key: "BlackTowerInteriorDoor", label: "Black Tower Interior", value: 1},
-  { key: "bigKeyBoss", label: "Black Key Placed", value: 224 },
-  { key: "bigKeyOverflow", label: "bigKeyOverflow", value: 225 }
+  { key: "bigKeyBoss", label: "Black Key Placed", value: 224 }
+];
+
+// Endgame Gauntlet
+const GAUNTLET_DEFINITIONS = [
+  { key: "GauntletChamber0", label: "Chamber 1", value: 1 },
+  { key: "GauntletChamber1", label: "Chamber 2", value: 1 },
+  { key: "GauntletChamber2", label: "Chamber 3", value: 1 },
+  { key: "GauntletChamber3", label: "Chamber 4", value: 1 },
+  { key: "GauntletChamber4", label: "Chamber 5", value: 1 },
+  { key: "GauntletChamber5", label: "Chamber 6", value: 1 },
+  { key: "GauntletChamber6", label: "Chamber 7", value: 1 },
+  { key: "GauntletComplete", label: "Gauntlet Complete", value: 1 },
+  { key: "bigKeyOverflow", label: "White Key Placed", value: 225 }
 ];
 
 // Radio Stations
@@ -238,22 +250,22 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdCannonballCommute",
     label: "Cannonball Commute",
-    area: "Unsorted",
+    area: "Purple",
   },
   {
     key: "gourdCharadesRooms",
     label: "Charades Rooms",
-    area: "Unsorted",
+    area: "Purple",
   },
   {
     key: "gourdSpeedObby",
     label: "Speed Obby",
-    area: "Unsorted",
+    area: "Purple",
   },
   {
     key: "gourdPoetAndPontiff",
     label: "Poet & Pontiff",
-    area: "Unsorted",
+    area: "Purple",
   },
   {
     key: "gourdTileThief",
@@ -263,7 +275,7 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdCenturionSeance",
     label: "Centurion Seance",
-    area: "Unsorted",
+    area: "Purple",
   },
   {
     key: "gourdMusicalHoliday",
