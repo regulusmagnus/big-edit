@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Big Walk Save Editor</title>
+  <style>
+    :root { --bg: #121212; --panel: #1e1e1e; --accent: #4caf50; --text: #e0e0e0; --border: #333; }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; margin: 0; }
+    .container { max-width: 850px; margin: 0 auto; }
+    .drop-zone { border: 2px dashed var(--border); padding: 2rem; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 1.5rem; background: var(--panel); }
+    .drop-zone:hover { border-color: var(--accent); }
+    .card { background: var(--panel); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+    .row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #2a2a2a; }
+    .row:last-child { border-bottom: none; }
+    .badge { font-family: monospace; font-size: 0.75rem; background: #000; padding: 2px 6px; border-radius: 4px; color: #888; margin-left: 6px; }
+    input[type="number"], input[type="text"] { background: #121212; border: 1px solid var(--border); color: #fff; padding: 6px 10px; border-radius: 4px; }
+    button.btn-primary { background: var(--accent); color: #000; font-weight: bold; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+    button.btn-primary:hover { opacity: 0.9; }
+    .hidden { display: none; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .tag { background: #2a2a2a; padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px; }
+    .tag button { background: none; border: none; color: #ff5252; cursor: pointer; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Big Walk Save Editor</h2>
+
+  <div id="dropZone" class="drop-zone">
+    <p>📁 Drag and drop <strong>save_file.sav</strong> here, or click to browse</p>
+    <input type="file" id="fileInput" class="hidden">
+  </div>
+
+  <div id="editorPanel" class="hidden">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>General / Game State</h3>
+        <button id="saveBtn" class="btn-primary">💾 Export Modified Save</button>
+      </div>
+      <div id="entriesContainer"></div>
+    </div>
+
+    <div class="card">
+      <h3>Inventory Items</h3>
+      <div id="inventoryContainer" class="tag-list"></div>
+      <div style="margin-top: 1rem; display: flex; gap: 8px;">
+        <input type="text" id="newInvInput" placeholder="Item UUID or Name" style="flex-grow: 1;">
+        <button id="addInvBtn" style="padding: 6px 12px; cursor:pointer;">Add Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Static database compiled from your Python watcher runs
+  const ID_DATABASE = {
+    entries: {
+      "worldSeed": { label: "World Seed" },
+      "EndingGate": { label: "Ending Gate Active" },
+      "6577972e-a809-4436-8335-8e8c80d9f3d9": { label: "Binoculars Found" },
+      "f17b1d07-201c-40fe-9262-643d83cd9395": { label: "Main Checkpoint" },
+      "{steamID}keyLookIdHead": { label: "Head Cosmetic ID" },
+      "{steamID}keyLookIdTorso": { label: "Torso Cosmetic ID" },
+      "{steamID}keyLookIdLegs": { label: "Legs Cosmetic ID" },
+      "{steamID}keyWalkingProven": { label: "Walking Achievement" }
+    },
+    inventory: {
+      "e5f6g7h8-0000-0000-0000-000000000000": { label: "Flashlight" }
+    }
+  };
+
+  let rawSaveData = null;
+  let detectedSteamId = "";
+
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const editorPanel = document.getElementById('editorPanel');
+  const entriesContainer = document.getElementById('entriesContainer');
+  const inventoryContainer = document.getElementById('inventoryContainer');
+
+  dropZone.onclick = () => fileInput.click();
+  fileInput.onchange = (e) => handleFile(e.target.files[0]);
+  dropZone.ondragover = (e) => { e.preventDefault(); };
+  dropZone.ondrop = (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  };
+
+  function handleFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        rawSaveData = JSON.parse(e.target.result);
+        renderEditor();
+        dropZone.classList.add('hidden');
+        editorPanel.classList.remove('hidden');
+      } catch (err) {
+        alert("Invalid JSON save file.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function resolveKeyLabel(key) {
+    if (ID_DATABASE.entries[key]) return { label: ID_DATABASE.entries[key].label, cleanKey: key };
+    
+    // Check for 17-digit SteamID pattern prefix
+    const steamMatch = key.match(/^(\d{17})(.+)$/);
+    if (steamMatch) {
+      detectedSteamId = steamMatch[1];
+      const genericKey = `{steamID}${steamMatch[2]}`;
+      if (ID_DATABASE.entries[genericKey]) {
+        return { label: ID_DATABASE.entries[genericKey].label, cleanKey: genericKey };
+      }
+    }
+    return { label: key, cleanKey: key };
+  }
+
+  function renderEditor() {
+    entriesContainer.innerHTML = '';
+    inventoryContainer.innerHTML = '';
+
+    // 1. Render Entries Array
+    if (Array.isArray(rawSaveData.entries)) {
+      rawSaveData.entries.forEach((item, index) => {
+        const { label, cleanKey } = resolveKeyLabel(item.key);
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <div>
+            <span>${label}</span>
+            <span class="badge">${item.key}</span>
+          </div>
+          <input type="number" value="${item.value}" data-index="${index}">
+        `;
+        row.querySelector('input').addEventListener('input', (e) => {
+          rawSaveData.entries[index].value = Number(e.target.value);
+        });
+        entriesContainer.appendChild(row);
+      });
+    }
+
+    // 2. Render Inventory List
+    if (Array.isArray(rawSaveData.inventory)) {
+      rawSaveData.inventory.forEach((itemId, index) => {
+        const name = ID_DATABASE.inventory[itemId]?.label || itemId;
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        tag.innerHTML = `<span>${name}</span> <button data-index="${index}">&times;</button>`;
+        tag.querySelector('button').onclick = () => {
+          rawSaveData.inventory.splice(index, 1);
+          renderEditor();
+        };
+        inventoryContainer.appendChild(tag);
+      });
+    }
+  }
+
+  // Add Item to Inventory
+  document.getElementById('addInvBtn').onclick = () => {
+    const input = document.getElementById('newInvInput');
+    const val = input.value.trim();
+    if (val) {
+      if (!rawSaveData.inventory) rawSaveData.inventory = [];
+      rawSaveData.inventory.push(val);
+      input.value = '';
+      renderEditor();
+    }
+  };
+
+  // Export Modified JSON file
+  document.getElementById('saveBtn').onclick = () => {
+    const blob = new Blob([JSON.stringify(rawSaveData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "save_file.sav";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+</script>
+</body>
+</html>
