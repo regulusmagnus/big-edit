@@ -166,6 +166,17 @@
     input:checked + .slider { background-color: var(--accent); }
     input:checked + .slider:before { transform: translateX(20px); }
 
+    /* Hyperlink Styles */
+    .item-link {
+      color: var(--text);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.2s;
+    }
+    .item-link:hover {
+      color: var(--accent);
+    }
+
     /* Gourd Styles */
     .area-group { margin-bottom: 1.5rem; }
     .area-group:last-child { margin-bottom: 0; }
@@ -608,9 +619,13 @@
       const row = document.createElement('div');
       row.className = 'toggle-row';
       const radioName = `beacon_${beacon.coordinate_1}_${beacon.coordinate_2}`;
+      const coordText = `(${beacon.coordinate_1}, ${beacon.coordinate_2})`;
+      const labelContent = beacon.link
+        ? `<a href="${beacon.link}" target="_blank" rel="noopener noreferrer" class="item-link">${coordText}</a>`
+        : `<span>${coordText}</span>`;
 
       row.innerHTML = `
-        <span>(${beacon.coordinate_1}, ${beacon.coordinate_2})</span>
+        ${labelContent}
         <div class="radio-group">
           <label>
             <input type="radio" name="${radioName}" value="off" ${state === 'off' ? 'checked' : ''}>
@@ -752,11 +767,15 @@
             }).join('')
           : `<option disabled>No Slots Available</option>`;
 
+        const labelContent = gourd.link
+          ? `<a href="${gourd.link}" target="_blank" rel="noopener noreferrer" class="item-link"><strong>${gourd.label}</strong></a>`
+          : `<strong>${gourd.label}</strong>`;
+
         const card = document.createElement('div');
         card.className = 'gourd-card';
         card.innerHTML = `
           <div class="gourd-header">
-            <span><strong>${gourd.label}</strong></span>
+            <span>${labelContent}</span>
             <label class="switch">
               <input type="checkbox" class="gourd-solve-toggle" ${state.solved ? 'checked' : ''}>
               <span class="slider"></span>
