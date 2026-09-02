@@ -252,12 +252,37 @@
     .player-card:last-child {
       margin-bottom: 0;
     }
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .player-id-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
     .player-id {
       font-family: monospace;
       font-size: 0.95rem;
       color: var(--accent);
-      margin-bottom: 0.75rem;
-      display: block;
+    }
+    .player-persona {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .player-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .lookup-status {
+      font-size: 0.85rem;
+      font-weight: normal;
+      color: var(--text-muted);
     }
     .color-slots-grid {
       display: grid;
@@ -457,6 +482,9 @@
     <details class="card">
       <summary>Character Colors</summary>
       <div class="collapsible-body">
+        <div class="section-toolbar">
+          <button class="btn-sm" id="btnLookupAllSteam">Lookup All Steam Names</button>
+        </div>
         <div id="characterColorsContainer"></div>
       </div>
     </details>
@@ -480,6 +508,7 @@
 <script>
   let savePayload = null;
   const ITEM_LABEL_TO_ID = {};
+  const STEAM_PERSONA_CACHE = {};
   const WINDOWS_SAVE_PATH = "%LOCALAPPDATA%Low\\House House\\Big Walk\\user_data\\save_games\\";
 
   // Fallback palette in case database.js hasn't loaded yet
@@ -542,6 +571,7 @@
   const btnAllGourdsPuzzle = document.getElementById('btnAllGourdsPuzzle');
   const btnAllGourdsInventory = document.getElementById('btnAllGourdsInventory');
   const btnAllGourdsPlaced = document.getElementById('btnAllGourdsPlaced');
+  const btnLookupAllSteam = document.getElementById('btnLookupAllSteam');
 
   // Initialize lookup maps and UI datalist using external database.js
   function initDatabaseMappings() {
@@ -569,6 +599,142 @@
 
   btnCopyPath.onclick = copySavePath;
   pathHelper.onclick = (e) => e.stopPropagation();
+
+  // Persistent Player Name Cache (Client-side localStorage)
+  function getCachedPersona(playerId) {
+    if (STEAM_PERSONA_CACHE[playerId]) return STEAM_PERSONA_CACHE[playerId];
+    try {
+      const saved = localStorage.getItem(`steam_name_${playerId}`);
+      if (saved) {
+        STEAM_PERSONA_CACHE[playerId] = saved;
+        return saved;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function setCachedPersona(playerId, name) {
+    STEAM_PERSONA_CACHE[playerId] = name;
+    try {
+      localStorage.setItem(`steam_name_${playerId}`, name);
+    } catch (e) {}
+  }
+
+  // Steam persona lookup using PlayerDB (clean CORS JSON API) with AllOrigins fallback
+  async function fetchSteamPersona(playerId) {
+    const cached = getCachedPersona(playerId);
+    if (cached) return { success: true, persona: cached };
+
+    const diagnosticErrors = [];
+
+    // Method 1: PlayerDB (CORS-friendly public REST API)
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(`https://playerdb.co/api/player/steam/${playerId}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data && json.data.player && json.data.player.username) {
+          const persona = json.data.player.username.trim();
+          if (persona) {
+            setCachedPersona(playerId, persona);
+            return { success: true, persona };
+          }
+        }
+        diagnosticErrors.push(`PlayerDB: ${json.message || 'Player not found'}`);
+      } else {
+        diagnosticErrors.push(`PlayerDB: HTTP ${res.status}`);
+      }
+    } catch (err) {
+      diagnosticErrors.push(`PlayerDB: ${err.name === 'AbortError' ? 'Timeout (4s)' : (err.message || 'Network error')}`);
+    }
+
+    // Method 2: AllOrigins JSON API fallback wrapper around Steam XML
+    const steamUrl = `https://steamcommunity.com/profiles/${playerId}/?xml=1`;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(steamUrl)}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.contents) {
+          const match = json.contents.match(/<steamID>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/steamID>/is);
+          if (match && match[1]) {
+            const persona = match[1].trim();
+            if (persona) {
+              setCachedPersona(playerId, persona);
+              return { success: true, persona };
+            }
+          }
+          diagnosticErrors.push("AllOrigins: <steamID> missing");
+        } else {
+          diagnosticErrors.push("AllOrigins: Empty contents");
+        }
+      } else {
+        diagnosticErrors.push(`AllOrigins: HTTP ${res.status}`);
+      }
+    } catch (err) {
+      diagnosticErrors.push(`AllOrigins: ${err.name === 'AbortError' ? 'Timeout (4.5s)' : (err.message || 'Network error')}`);
+    }
+
+    return { success: false, errors: diagnosticErrors };
+  }
+
+  // Lookup trigger with diagnostic feedback
+  async function triggerSteamLookup(playerId) {
+    const statusEl = document.getElementById(`status_${playerId}`);
+    const btn = document.getElementById(`btn_lookup_${playerId}`);
+
+    if (statusEl) {
+      statusEl.innerHTML = `<span class="lookup-status">⏳ Searching...</span>`;
+    }
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Looking up...";
+    }
+
+    const result = await fetchSteamPersona(playerId);
+
+    if (result.success) {
+      if (statusEl) {
+        statusEl.innerHTML = ` (<span class="player-persona">${result.persona}</span>)`;
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "↻ Refetch";
+      }
+    } else {
+      const errorSummary = result.errors && result.errors.length > 0 ? result.errors.join(' | ') : 'Lookup failed';
+      console.warn(`[Steam Lookup Debug] Player ${playerId} failed:`, result.errors);
+      if (statusEl) {
+        statusEl.innerHTML = ` <span class="lookup-status" style="color: var(--danger);" title="${errorSummary}">(Failed: ${errorSummary})</span>`;
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Retry";
+      }
+    }
+  }
+
+  // Manual custom rename modal prompt
+  function promptManualPersona(playerId) {
+    const current = getCachedPersona(playerId) || "";
+    const customName = prompt(`Enter custom display name for Player ${playerId}:`, current);
+    if (customName !== null) {
+      const trimmed = customName.trim();
+      if (trimmed) {
+        setCachedPersona(playerId, trimmed);
+        const statusEl = document.getElementById(`status_${playerId}`);
+        if (statusEl) {
+          statusEl.innerHTML = ` (<span class="player-persona">${trimmed}</span>)`;
+        }
+      }
+    }
+  }
 
   // File loading
   dropZone.onclick = () => fileInput.click();
@@ -973,12 +1139,34 @@
         `;
       });
 
+      const isSteamId = playerId.startsWith("7656119");
+      const cachedName = getCachedPersona(playerId);
+      const initialStatus = cachedName ? ` (<span class="player-persona">${cachedName}</span>)` : '';
+
       card.innerHTML = `
-        <span class="player-id">Player ID: ${playerId}</span>
+        <div class="player-header">
+          <div class="player-id-wrapper">
+            <span class="player-id">
+              ${isSteamId ? `<a href="https://steamcommunity.com/profiles/${playerId}" target="_blank" rel="noopener noreferrer" class="item-link" title="Open Steam Profile">Player ID: ${playerId}</a>` : `Player ID: ${playerId}`}
+            </span>
+            <span id="status_${playerId}">${initialStatus}</span>
+          </div>
+          <div class="player-actions">
+            ${isSteamId ? `<button type="button" class="btn-sm" id="btn_lookup_${playerId}">${cachedName ? '↻ Refetch' : '🔍 Lookup Steam Name'}</button>` : ''}
+            <button type="button" class="btn-sm" id="btn_edit_${playerId}" title="Set custom display name">✏️ Rename</button>
+          </div>
+        </div>
         <div class="color-slots-grid">
           ${slotsHtml}
         </div>
       `;
+
+      if (isSteamId) {
+        const lookupBtn = card.querySelector(`#btn_lookup_${playerId}`);
+        lookupBtn.addEventListener('click', () => triggerSteamLookup(playerId));
+      }
+
+      card.querySelector(`#btn_edit_${playerId}`).addEventListener('click', () => promptManualPersona(playerId));
 
       card.querySelectorAll('.color-picker-select').forEach(sel => {
         sel.addEventListener('change', (e) => {
@@ -1188,6 +1376,28 @@
   btnAllGourdsPuzzle.onclick = () => setAllGourdsBulk('at_puzzle');
   btnAllGourdsInventory.onclick = () => setAllGourdsBulk('inventory');
   btnAllGourdsPlaced.onclick = () => setAllGourdsBulk('placed');
+
+  // Manual bulk lookup executed sequentially with a safe delay
+  btnLookupAllSteam.onclick = async () => {
+    if (!savePayload || !Array.isArray(savePayload.entries)) return;
+    const steamIds = new Set();
+    savePayload.entries.forEach(entry => {
+      if (!entry || typeof entry.key !== 'string') return;
+      const match = entry.key.match(/^(7656119\d+)(keyLookId(Head|Torso|Legs))$/);
+      if (match) steamIds.add(match[1]);
+    });
+
+    btnLookupAllSteam.disabled = true;
+    btnLookupAllSteam.textContent = "Looking up names...";
+
+    for (const id of Array.from(steamIds)) {
+      await triggerSteamLookup(id);
+      await new Promise(r => setTimeout(r, 450));
+    }
+
+    btnLookupAllSteam.disabled = false;
+    btnLookupAllSteam.textContent = "Lookup All Steam Names";
+  };
 
   // Export Modified Save
   exportBtn.onclick = () => {
