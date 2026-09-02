@@ -102,16 +102,17 @@
         </div>
       </details>
 
-      <!-- Inventory Items (Full Width) -->
-      <div class="card col-span-full">
-        <h3>Inventory Items</h3>
-        <div class="search-bar">
-          <input type="text" id="itemSearch" list="availableItemsList" placeholder="Search item to add (e.g. Compass, Flashlight)...">
-          <datalist id="availableItemsList"></datalist>
-          <button id="addItemBtn" class="btn">Add Item</button>
+      <!-- Inventory (Collapsible - Full Width) -->
+      <details class="card col-span-full">
+        <summary>Inventory</summary>
+        <div class="collapsible-body">
+          <div class="section-toolbar">
+            <button class="btn-sm" id="btnClearAllInventory">Clear All</button>
+            <button class="btn-sm" id="btnSelectAllInventory">Select All</button>
+          </div>
+          <div id="inventoryContainer"></div>
         </div>
-        <div id="inventoryContainer" class="inventory-list"></div>
-      </div>
+      </details>
     </div>
   </div>
 </div>

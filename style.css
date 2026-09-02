@@ -206,7 +206,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 /* Gourd Area Groups Side-by-Side */
 #gourdsContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
   gap: 1rem;
   align-items: start;
 }
@@ -381,66 +381,55 @@ input:checked + .slider:before { transform: translateX(20px); }
   outline: 1px solid var(--accent);
 }
 
-/* Inventory Section */
-.search-bar { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
-.search-bar input {
-  flex: 1;
-  padding: 0.65rem 1rem;
+/* Inventory Multi-Column Grid */
+#inventoryContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.inventory-group {
   background: #141417;
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  color: var(--text);
-  font-size: 0.95rem;
+  padding: 1rem;
 }
-.search-bar input:focus { outline: 1px solid var(--accent); }
 
-.btn {
-  background: var(--accent);
-  color: #000;
-  font-weight: 600;
-  border: none;
-  padding: 0.65rem 1.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-.btn:hover { background: var(--accent-hover); }
-
-.inventory-list {
+.inventory-items-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  min-height: 48px;
-  padding: 0.75rem;
-  background: #141417;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
+  flex-direction: column;
+  gap: 0.45rem;
 }
-.empty-msg {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin: auto;
-}
-.item-chip {
-  background: #24242a;
+
+.inventory-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: #1c1c22;
   border: 1px solid var(--card-border);
   border-radius: 6px;
-  padding: 0.4rem 0.75rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.9rem;
-}
-.item-chip button {
-  background: transparent;
-  border: none;
-  color: var(--danger);
+  padding: 0.45rem 0.75rem;
   cursor: pointer;
-  font-weight: bold;
-  padding: 0;
-  font-size: 1rem;
-  line-height: 1;
+  font-size: 0.9rem;
+  color: var(--text);
+  user-select: none;
+  transition: background-color 0.2s, border-color 0.2s;
 }
+
+.inventory-checkbox-row:hover {
+  background: #24242a;
+  border-color: var(--accent);
+}
+
+.inventory-checkbox-row input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .action-header {
   display: flex;
   justify-content: space-between;

@@ -1,5 +1,4 @@
 let savePayload = null;
-const ITEM_LABEL_TO_ID = {};
 const STEAM_PERSONA_CACHE = {};
 const WINDOWS_SAVE_PATH = "%LOCALAPPDATA%Low\\House House\\Big Walk\\user_data\\save_games\\";
 
@@ -44,9 +43,6 @@ const orbBeaconsContainer = document.getElementById('orbBeaconsContainer');
 const gourdsContainer = document.getElementById('gourdsContainer');
 const characterColorsContainer = document.getElementById('characterColorsContainer');
 const inventoryContainer = document.getElementById('inventoryContainer');
-const availableItemsList = document.getElementById('availableItemsList');
-const itemSearch = document.getElementById('itemSearch');
-const addItemBtn = document.getElementById('addItemBtn');
 const exportBtn = document.getElementById('exportBtn');
 
 // Bulk Button Elements
@@ -64,21 +60,8 @@ const btnAllGourdsPuzzle = document.getElementById('btnAllGourdsPuzzle');
 const btnAllGourdsInventory = document.getElementById('btnAllGourdsInventory');
 const btnAllGourdsPlaced = document.getElementById('btnAllGourdsPlaced');
 const btnLookupAllSteam = document.getElementById('btnLookupAllSteam');
-
-// Initialize lookup maps and UI datalist using external database.js
-function initDatabaseMappings() {
-  if (typeof INVENTORY_DATABASE === 'undefined') return;
-
-  for (const [id, label] of Object.entries(INVENTORY_DATABASE)) {
-    ITEM_LABEL_TO_ID[label.toLowerCase()] = id;
-  }
-
-  Object.values(INVENTORY_DATABASE).sort().forEach(label => {
-    const opt = document.createElement('option');
-    opt.value = label;
-    availableItemsList.appendChild(opt);
-  });
-}
+const btnClearAllInventory = document.getElementById('btnClearAllInventory');
+const btnSelectAllInventory = document.getElementById('btnSelectAllInventory');
 
 // Copy save file path to clipboard
 function copySavePath(e) {
@@ -89,8 +72,8 @@ function copySavePath(e) {
   });
 }
 
-btnCopyPath.onclick = copySavePath;
-pathHelper.onclick = (e) => e.stopPropagation();
+if (btnCopyPath) btnCopyPath.onclick = copySavePath;
+if (pathHelper) pathHelper.onclick = (e) => e.stopPropagation();
 
 // Persistent Player Name Cache (Client-side localStorage)
 function getCachedPersona(playerId) {
@@ -201,7 +184,6 @@ async function triggerSteamLookup(playerId) {
     }
   } else {
     const errorSummary = result.errors && result.errors.length > 0 ? result.errors.join(' | ') : 'Lookup failed';
-    console.warn(`[Steam Lookup Debug] Player ${playerId} failed:`, result.errors);
     if (statusEl) {
       statusEl.innerHTML = ` <span class="lookup-status" style="color: var(--danger);" title="${errorSummary}">(Failed: ${errorSummary})</span>`;
     }
@@ -212,7 +194,7 @@ async function triggerSteamLookup(playerId) {
   }
 }
 
-// Manual custom rename modal prompt
+// Manual custom rename prompt
 function promptManualPersona(playerId) {
   const current = getCachedPersona(playerId) || "";
   const customName = prompt(`Enter custom display name for Player ${playerId}:`, current);
@@ -335,12 +317,8 @@ function getOrbBeaconState(beacon) {
   const hasOrb = savePayload.inventory.includes(beacon.orb_id);
   const lightVal = getEntryValue(beacon.light_id);
 
-  if (hasOrb) {
-    return 'inventory';
-  }
-  if (lightVal === 1 && !hasOrb) {
-    return 'on';
-  }
+  if (hasOrb) return 'inventory';
+  if (lightVal === 1 && !hasOrb) return 'on';
   return 'off';
 }
 
@@ -687,32 +665,63 @@ function renderCharacterColors() {
   });
 }
 
+// Grouped Checkbox Inventory Renderer (Always displays all database items)
 function renderInventory() {
+  if (!inventoryContainer) return;
   inventoryContainer.innerHTML = '';
-  
-  const visibleItems = savePayload.inventory
-    .map((id, index) => ({ id, index, label: INVENTORY_DATABASE[id] }))
-    .filter(item => Boolean(item.label));
+  if (typeof INVENTORY_DATABASE === 'undefined' || !Array.isArray(INVENTORY_DATABASE)) return;
 
-  if (visibleItems.length === 0) {
-    inventoryContainer.innerHTML = '<span class="empty-msg">No tracked items in inventory</span>';
-    return;
-  }
+  const currentInventory = Array.isArray(savePayload?.inventory) ? savePayload.inventory : [];
 
-  visibleItems.forEach(item => {
-    const chip = document.createElement('div');
-    chip.className = 'item-chip';
-    chip.innerHTML = `
-      <span>${item.label}</span>
-      <button title="Remove item">&times;</button>
-    `;
-    chip.querySelector('button').onclick = () => {
-      savePayload.inventory.splice(item.index, 1);
-      renderInventory();
-      renderGourds();
-      renderOrbBeacons();
-    };
-    inventoryContainer.appendChild(chip);
+  const groups = {};
+  INVENTORY_DATABASE.forEach(item => {
+    const type = item.type || "Other";
+    if (!groups[type]) groups[type] = [];
+    groups[type].push(item);
+  });
+
+  Object.keys(groups).forEach(type => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'inventory-group';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'area-title';
+    titleEl.textContent = type;
+    groupEl.appendChild(titleEl);
+
+    const listEl = document.createElement('div');
+    listEl.className = 'inventory-items-list';
+
+    groups[type].forEach(item => {
+      const isChecked = currentInventory.includes(item.item_id);
+
+      const row = document.createElement('label');
+      row.className = 'inventory-checkbox-row';
+      row.innerHTML = `
+        <input type="checkbox" data-id="${item.item_id}" ${isChecked ? 'checked' : ''}>
+        <span>${item.label}</span>
+      `;
+
+      row.querySelector('input').addEventListener('change', (e) => {
+        const id = e.target.dataset.id;
+        if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
+
+        if (e.target.checked) {
+          if (!savePayload.inventory.includes(id)) {
+            savePayload.inventory.push(id);
+          }
+        } else {
+          savePayload.inventory = savePayload.inventory.filter(invId => invId !== id);
+        }
+        renderGourds();
+        renderOrbBeacons();
+      });
+
+      listEl.appendChild(row);
+    });
+
+    groupEl.appendChild(listEl);
+    inventoryContainer.appendChild(groupEl);
   });
 }
 
@@ -726,73 +735,67 @@ function renderUI() {
   renderInventory();
 }
 
-function addInventoryItem() {
-  const query = itemSearch.value.trim().toLowerCase();
-  const targetId = ITEM_LABEL_TO_ID[query];
-
-  if (targetId) {
-    savePayload.inventory.push(targetId);
-    itemSearch.value = '';
-    renderInventory();
-    renderGourds();
-    renderOrbBeacons();
-  } else {
-    alert("Please select a valid item from the list.");
-  }
+// Bulk Operations Logic
+if (btnDisableAllUnlocks) {
+  btnDisableAllUnlocks.onclick = () => {
+    if (typeof UNLOCK_DEFINITIONS !== 'undefined') {
+      UNLOCK_DEFINITIONS.forEach(def => setKeyPresent(def.key, false, def.value));
+    }
+    setEndingGateUnlocked(false);
+    renderUnlocks();
+  };
 }
 
-addItemBtn.onclick = addInventoryItem;
-itemSearch.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addInventoryItem();
-});
+if (btnEnableAllUnlocks) {
+  btnEnableAllUnlocks.onclick = () => {
+    if (typeof UNLOCK_DEFINITIONS !== 'undefined') {
+      UNLOCK_DEFINITIONS.forEach(def => setKeyPresent(def.key, true, def.value));
+    }
+    setEndingGateUnlocked(true);
+    renderUnlocks();
+  };
+}
 
-// Bulk Operations Logic
-btnDisableAllUnlocks.onclick = () => {
-  if (typeof UNLOCK_DEFINITIONS !== 'undefined') {
-    UNLOCK_DEFINITIONS.forEach(def => setKeyPresent(def.key, false, def.value));
-  }
-  setEndingGateUnlocked(false);
-  renderUnlocks();
-};
+if (btnDisableAllGauntlet) {
+  btnDisableAllGauntlet.onclick = () => {
+    if (typeof GAUNTLET_DEFINITIONS !== 'undefined') {
+      GAUNTLET_DEFINITIONS.forEach(def => setKeyPresent(def.key, false, def.value));
+    }
+    renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
+  };
+}
 
-btnEnableAllUnlocks.onclick = () => {
-  if (typeof UNLOCK_DEFINITIONS !== 'undefined') {
-    UNLOCK_DEFINITIONS.forEach(def => setKeyPresent(def.key, true, def.value));
-  }
-  setEndingGateUnlocked(true);
-  renderUnlocks();
-};
+if (btnEnableAllGauntlet) {
+  btnEnableAllGauntlet.onclick = () => {
+    if (typeof GAUNTLET_DEFINITIONS !== 'undefined') {
+      GAUNTLET_DEFINITIONS.forEach(def => setKeyPresent(def.key, true, def.value));
+    }
+    renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
+  };
+}
 
-btnDisableAllGauntlet.onclick = () => {
-  if (typeof GAUNTLET_DEFINITIONS !== 'undefined') {
-    GAUNTLET_DEFINITIONS.forEach(def => setKeyPresent(def.key, false, def.value));
-  }
-  renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
-};
+if (btnDisableAllRadios) {
+  btnDisableAllRadios.onclick = () => {
+    if (typeof RADIO_DEFINITIONS !== 'undefined') {
+      RADIO_DEFINITIONS.forEach(def => setKeyPresent(def.key, false, def.value));
+    }
+    renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
+  };
+}
 
-btnEnableAllGauntlet.onclick = () => {
-  if (typeof GAUNTLET_DEFINITIONS !== 'undefined') {
-    GAUNTLET_DEFINITIONS.forEach(def => setKeyPresent(def.key, true, def.value));
-  }
-  renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
-};
-
-btnDisableAllRadios.onclick = () => {
-  if (typeof RADIO_DEFINITIONS !== 'undefined') {
-    RADIO_DEFINITIONS.forEach(def => setKeyPresent(def.key, false, def.value));
-  }
-  renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
-};
-
-btnEnableAllRadios.onclick = () => {
-  if (typeof RADIO_DEFINITIONS !== 'undefined') {
-    RADIO_DEFINITIONS.forEach(def => setKeyPresent(def.key, true, def.value));
-  }
-  renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
-};
+if (btnEnableAllRadios) {
+  btnEnableAllRadios.onclick = () => {
+    if (typeof RADIO_DEFINITIONS !== 'undefined') {
+      RADIO_DEFINITIONS.forEach(def => setKeyPresent(def.key, true, def.value));
+    }
+    renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
+  };
+}
 
 function setAllOrbBeaconsBulk(mode) {
   if (typeof ORB_BEACON_DATABASE === 'undefined') return;
+  if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
+
   ORB_BEACON_DATABASE.forEach(beacon => {
     const entryIdx = savePayload.entries.findIndex(e => e && e.key === beacon.light_id);
     if (entryIdx !== -1) savePayload.entries.splice(entryIdx, 1);
@@ -810,12 +813,13 @@ function setAllOrbBeaconsBulk(mode) {
   renderOrbBeacons();
 }
 
-btnAllBeaconsOff.onclick = () => setAllOrbBeaconsBulk('off');
-btnAllBeaconsOn.onclick = () => setAllOrbBeaconsBulk('on');
-btnAllBeaconsInv.onclick = () => setAllOrbBeaconsBulk('inventory');
+if (btnAllBeaconsOff) btnAllBeaconsOff.onclick = () => setAllOrbBeaconsBulk('off');
+if (btnAllBeaconsOn) btnAllBeaconsOn.onclick = () => setAllOrbBeaconsBulk('on');
+if (btnAllBeaconsInv) btnAllBeaconsInv.onclick = () => setAllOrbBeaconsBulk('inventory');
 
 function setAllGourdsBulk(targetMode) {
   if (typeof GOURD_DEFINITIONS === 'undefined' || typeof GOURD_SLOTS === 'undefined') return;
+  if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
 
   let slotIdx = 0;
   GOURD_DEFINITIONS.forEach(gourd => {
@@ -864,43 +868,72 @@ function setAllGourdsBulk(targetMode) {
   renderGourds();
 }
 
-btnAllGourdsUnsolved.onclick = () => setAllGourdsBulk('unsolved');
-btnAllGourdsPuzzle.onclick = () => setAllGourdsBulk('at_puzzle');
-btnAllGourdsInventory.onclick = () => setAllGourdsBulk('inventory');
-btnAllGourdsPlaced.onclick = () => setAllGourdsBulk('placed');
+if (btnAllGourdsUnsolved) btnAllGourdsUnsolved.onclick = () => setAllGourdsBulk('unsolved');
+if (btnAllGourdsPuzzle) btnAllGourdsPuzzle.onclick = () => setAllGourdsBulk('at_puzzle');
+if (btnAllGourdsInventory) btnAllGourdsInventory.onclick = () => setAllGourdsBulk('inventory');
+if (btnAllGourdsPlaced) btnAllGourdsPlaced.onclick = () => setAllGourdsBulk('placed');
 
-// Manual bulk lookup executed sequentially with a safe delay
-btnLookupAllSteam.onclick = async () => {
-  if (!savePayload || !Array.isArray(savePayload.entries)) return;
-  const steamIds = new Set();
-  savePayload.entries.forEach(entry => {
-    if (!entry || typeof entry.key !== 'string') return;
-    const match = entry.key.match(/^(7656119\d+)(keyLookId(Head|Torso|Legs))$/);
-    if (match) steamIds.add(match[1]);
-  });
+// Manual bulk Steam lookup
+if (btnLookupAllSteam) {
+  btnLookupAllSteam.onclick = async () => {
+    if (!savePayload || !Array.isArray(savePayload.entries)) return;
+    const steamIds = new Set();
+    savePayload.entries.forEach(entry => {
+      if (!entry || typeof entry.key !== 'string') return;
+      const match = entry.key.match(/^(7656119\d+)(keyLookId(Head|Torso|Legs))$/);
+      if (match) steamIds.add(match[1]);
+    });
 
-  btnLookupAllSteam.disabled = true;
-  btnLookupAllSteam.textContent = "Looking up names...";
+    btnLookupAllSteam.disabled = true;
+    btnLookupAllSteam.textContent = "Looking up names...";
 
-  for (const id of Array.from(steamIds)) {
-    await triggerSteamLookup(id);
-    await new Promise(r => setTimeout(r, 450));
-  }
+    for (const id of Array.from(steamIds)) {
+      await triggerSteamLookup(id);
+      await new Promise(r => setTimeout(r, 450));
+    }
 
-  btnLookupAllSteam.disabled = false;
-  btnLookupAllSteam.textContent = "Lookup All Steam Names";
-};
+    btnLookupAllSteam.disabled = false;
+    btnLookupAllSteam.textContent = "Lookup All Steam Names";
+  };
+}
+
+// Bulk Inventory Operations
+if (btnClearAllInventory) {
+  btnClearAllInventory.onclick = () => {
+    if (!savePayload || typeof INVENTORY_DATABASE === 'undefined') return;
+    const dbIds = new Set(INVENTORY_DATABASE.map(item => item.item_id));
+    savePayload.inventory = savePayload.inventory.filter(id => !dbIds.has(id));
+    renderInventory();
+    renderGourds();
+    renderOrbBeacons();
+  };
+}
+
+if (btnSelectAllInventory) {
+  btnSelectAllInventory.onclick = () => {
+    if (!savePayload || typeof INVENTORY_DATABASE === 'undefined') return;
+    if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
+    INVENTORY_DATABASE.forEach(item => {
+      if (!savePayload.inventory.includes(item.item_id)) {
+        savePayload.inventory.push(item.item_id);
+      }
+    });
+    renderInventory();
+    renderGourds();
+    renderOrbBeacons();
+  };
+}
 
 // Export Modified Save
-exportBtn.onclick = () => {
-  const dataStr = JSON.stringify(savePayload, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "save_file.sav";
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-initDatabaseMappings();
+if (exportBtn) {
+  exportBtn.onclick = () => {
+    const dataStr = JSON.stringify(savePayload, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "save_file.sav";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+}
