@@ -286,7 +286,7 @@
     }
     .color-slots-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 0.75rem;
     }
     .color-slot {
@@ -297,12 +297,14 @@
       padding: 0.5rem 0.75rem;
       border-radius: 6px;
       border: 1px solid var(--card-border);
+      min-width: 0;
     }
     .color-slot label {
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--text-muted);
-      min-width: 42px;
+      min-width: 40px;
+      flex-shrink: 0;
     }
     .color-swatch {
       width: 20px;
@@ -313,12 +315,15 @@
     }
     .color-picker-select {
       flex: 1;
+      min-width: 0;
+      width: 100%;
       background: #141417;
       color: var(--text);
       border: 1px solid var(--card-border);
       border-radius: 6px;
       padding: 0.35rem 0.5rem;
       font-size: 0.85rem;
+      cursor: pointer;
     }
     .color-picker-select:focus {
       outline: 1px solid var(--accent);
