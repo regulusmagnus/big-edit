@@ -19,10 +19,10 @@ Note: House House states that there is not canon terminology for the various thi
 - Unlock gourds and modify where they have been placed
 - Enable/disable orb beacon lights, or place them all in your inventory (try it! it's hilarious!)
 - Gourds and orb beacons link to locations on the wand.com interactive map
+- Change character colors
 
 ## To Do
 
-- Add ability to change character colors
 - Add in enable/disable for additional (static) light fixtures
 - Add editing in-game sign text
 

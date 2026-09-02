@@ -241,6 +241,64 @@
       font-size: 0.85rem;
     }
 
+    /* Character Color Styles */
+    .player-card {
+      background: #141417;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .player-card:last-child {
+      margin-bottom: 0;
+    }
+    .player-id {
+      font-family: monospace;
+      font-size: 0.95rem;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    .color-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+    }
+    .color-slot {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: #1a1a1e;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    .color-slot label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      min-width: 42px;
+    }
+    .color-swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+    }
+    .color-picker-select {
+      flex: 1;
+      background: #141417;
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.85rem;
+    }
+    .color-picker-select:focus {
+      outline: 1px solid var(--accent);
+    }
+
     /* Inventory Section */
     .search-bar { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
     .search-bar input {
@@ -395,6 +453,14 @@
       </div>
     </details>
 
+    <!-- Character Colors (Collapsible) -->
+    <details class="card">
+      <summary>Character Colors</summary>
+      <div class="collapsible-body">
+        <div id="characterColorsContainer"></div>
+      </div>
+    </details>
+
     <!-- Inventory Items -->
     <div class="card">
       <h3>Inventory Items</h3>
@@ -416,6 +482,34 @@
   const ITEM_LABEL_TO_ID = {};
   const WINDOWS_SAVE_PATH = "%LOCALAPPDATA%Low\\House House\\Big Walk\\user_data\\save_games\\";
 
+  // Fallback palette in case database.js hasn't loaded yet
+  const DEFAULT_CHARACTER_COLORS = [
+    { index: 0, name: "Slate Blue", hex: "#577091" },
+    { index: 1, name: "Red-Orange", hex: "#E9431C" },
+    { index: 2, name: "Bright Yellow", hex: "#FAE945" },
+    { index: 3, name: "Muted Teal", hex: "#5EA8AC" },
+    { index: 4, name: "Cobalt Blue", hex: "#3A5693" },
+    { index: 5, name: "Coral Red", hex: "#EE3B38" },
+    { index: 6, name: "Golden Yellow", hex: "#FAC035" },
+    { index: 7, name: "Forest Green", hex: "#2E632C" },
+    { index: 8, name: "Deep Plum", hex: "#76263E" },
+    { index: 9, name: "Espresso Brown", hex: "#463A30" },
+    { index: 10, name: "Tangerine Orange", hex: "#FB7A21" },
+    { index: 11, name: "Pale Peachy Pink", hex: "#F9DBCE" },
+    { index: 12, name: "Pastel Lemon", hex: "#F8F896" },
+    { index: 13, name: "Warm Taupe", hex: "#A79689" },
+    { index: 14, name: "Crimson", hex: "#C22941" },
+    { index: 15, name: "Emerald Green", hex: "#259A58" },
+    { index: 16, name: "Russet Brown", hex: "#9A5130" },
+    { index: 17, name: "Brick Red", hex: "#BC292C" },
+    { index: 18, name: "Warm Cream", hex: "#F9F3D4" },
+    { index: 19, name: "Jade/Sea Green", hex: "#22A98E" },
+    { index: 20, name: "Warm Tan", hex: "#CAA279" },
+    { index: 21, name: "Gold", hex: "#D4AF37" },
+    { index: 22, name: "Silver", hex: "#C0C0C0" },
+    { index: 23, name: "Bronze", hex: "#CD7F32" }
+  ];
+
   // DOM Elements
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
@@ -427,6 +521,7 @@
   const radiosContainer = document.getElementById('radiosContainer');
   const orbBeaconsContainer = document.getElementById('orbBeaconsContainer');
   const gourdsContainer = document.getElementById('gourdsContainer');
+  const characterColorsContainer = document.getElementById('characterColorsContainer');
   const inventoryContainer = document.getElementById('inventoryContainer');
   const availableItemsList = document.getElementById('availableItemsList');
   const itemSearch = document.getElementById('itemSearch');
@@ -825,6 +920,93 @@
     });
   }
 
+  // Character Colors State Logic
+  function renderCharacterColors() {
+    characterColorsContainer.innerHTML = '';
+    const colors = (typeof CHARACTER_COLORS !== 'undefined') ? CHARACTER_COLORS : DEFAULT_CHARACTER_COLORS;
+
+    // Discover unique player IDs and their current Head/Torso/Legs values
+    const playerMap = {};
+    if (savePayload && Array.isArray(savePayload.entries)) {
+      savePayload.entries.forEach(entry => {
+        if (!entry || typeof entry.key !== 'string') return;
+        const match = entry.key.match(/^(.+?)(keyLookId(Head|Torso|Legs))$/);
+        if (match) {
+          const playerId = match[1];
+          const slot = match[3]; // 'Head', 'Torso', 'Legs'
+          if (!playerMap[playerId]) {
+            playerMap[playerId] = { Head: 0, Torso: 0, Legs: 0 };
+          }
+          playerMap[playerId][slot] = Number(entry.value);
+        }
+      });
+    }
+
+    const playerIds = Object.keys(playerMap);
+    if (playerIds.length === 0) {
+      characterColorsContainer.innerHTML = '<span class="empty-msg">No character color data found in save file</span>';
+      return;
+    }
+
+    playerIds.forEach(playerId => {
+      const card = document.createElement('div');
+      card.className = 'player-card';
+
+      let slotsHtml = '';
+      ['Head', 'Torso', 'Legs'].forEach(part => {
+        const currentVal = playerMap[playerId][part] ?? 0;
+        const currentColor = colors.find(c => c.index === currentVal) || colors[0];
+
+        const optionsHtml = colors.map(c => {
+          const selected = c.index === currentVal ? 'selected' : '';
+          return `<option value="${c.index}" data-hex="${c.hex}" ${selected}>${c.index} - ${c.name}</option>`;
+        }).join('');
+
+        slotsHtml += `
+          <div class="color-slot">
+            <label>${part}</label>
+            <span class="color-swatch" id="swatch_${playerId}_${part}" style="background-color: ${currentColor.hex};"></span>
+            <select class="color-picker-select" data-player="${playerId}" data-part="${part}">
+              ${optionsHtml}
+            </select>
+          </div>
+        `;
+      });
+
+      card.innerHTML = `
+        <span class="player-id">Player ID: ${playerId}</span>
+        <div class="color-slots-grid">
+          ${slotsHtml}
+        </div>
+      `;
+
+      card.querySelectorAll('.color-picker-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+          const pId = e.target.dataset.player;
+          const pPart = e.target.dataset.part;
+          const newIndex = Number(e.target.value);
+          const selectedOpt = e.target.options[e.target.selectedIndex];
+          const hex = selectedOpt.dataset.hex;
+
+          // Update swatch
+          const swatch = card.querySelector(`#swatch_${pId}_${pPart}`);
+          if (swatch) swatch.style.backgroundColor = hex;
+
+          // Update save payload
+          const key = `${pId}keyLookId${pPart}`;
+          const entry = savePayload.entries.find(item => item && item.key === key);
+          if (entry) {
+            entry.value = newIndex;
+          } else {
+            savePayload.entries.push({ key: key, value: newIndex });
+          }
+        });
+      });
+
+      characterColorsContainer.appendChild(card);
+    });
+  }
+
   function renderInventory() {
     inventoryContainer.innerHTML = '';
     
@@ -860,6 +1042,7 @@
     renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
     renderOrbBeacons();
     renderGourds();
+    renderCharacterColors();
     renderInventory();
   }
 

@@ -647,6 +647,34 @@ const ORB_BEACON_DATABASE = [
     link: "https://wand.com/maps/big-walk/island-big-walk?location=fIeWEDpdeE"}
 ]
 
+// Character Colors Palette
+const CHARACTER_COLORS = [
+  { index: 0, name: "Slate Blue", hex: "#577091" },
+  { index: 1, name: "Red-Orange", hex: "#E9431C" },
+  { index: 2, name: "Bright Yellow", hex: "#FAE945" },
+  { index: 3, name: "Muted Teal", hex: "#5EA8AC" },
+  { index: 4, name: "Cobalt Blue", hex: "#3A5693" },
+  { index: 5, name: "Coral Red", hex: "#EE3B38" },
+  { index: 6, name: "Golden Yellow", hex: "#FAC035" },
+  { index: 7, name: "Forest Green", hex: "#2E632C" },
+  { index: 8, name: "Deep Plum", hex: "#76263E" },
+  { index: 9, name: "Espresso Brown", hex: "#463A30" },
+  { index: 10, name: "Tangerine Orange", hex: "#FB7A21" },
+  { index: 11, name: "Pale Peachy Pink", hex: "#F9DBCE" },
+  { index: 12, name: "Pastel Lemon", hex: "#F8F896" },
+  { index: 13, name: "Warm Taupe", hex: "#A79689" },
+  { index: 14, name: "Crimson", hex: "#C22941" },
+  { index: 15, name: "Emerald Green", hex: "#259A58" },
+  { index: 16, name: "Russet Brown", hex: "#9A5130" },
+  { index: 17, name: "Brick Red", hex: "#BC292C" },
+  { index: 18, name: "Warm Cream", hex: "#F9F3D4" },
+  { index: 19, name: "Jade/Sea Green", hex: "#22A98E" },
+  { index: 20, name: "Warm Tan", hex: "#CAA279" },
+  { index: 21, name: "Gold", hex: "#D4AF37" },
+  { index: 22, name: "Silver", hex: "#C0C0C0" },
+  { index: 23, name: "Bronze", hex: "#CD7F32" }
+];
+
 // Curated Inventory Items (Orbs, Lights, and Lamps excluded)
 const INVENTORY_DATABASE = {
   "307d526d-780f-4fe2-b3fd-95f74b86319c": "Cowbell (blue)",
