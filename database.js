@@ -39,14 +39,6 @@ const RADIO_DEFINITIONS = [
 // Gourd Definitions
 const GOURD_DEFINITIONS = [
   {
-    key: "gourdEasySimPress",
-    label: "Easy Sim Press",
-    area: "Intro Valley",
-    solved_value: 1082,
-    item_id: "aee838dc-281f-41fd-8f48-c97c10769172",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=2rS9DNRGue"
-  },
-  {
     key: "gourdHighButton",
     label: "High Button",
     area: "Intro Valley",
@@ -55,12 +47,12 @@ const GOURD_DEFINITIONS = [
     link: "https://wand.com/maps/big-walk/island-big-walk?location=MjapCtckOg"
   },
   {
-    key: "gourdTellerWindow",
-    label: "Teller Window",
+    key: "gourdEasySimPress",
+    label: "Easy Sim Press",
     area: "Intro Valley",
-    solved_value: 1402,
-    item_id: "84f2b536-41a9-4571-8304-579b3f5cf584",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=D064mC8dff"
+    solved_value: 1082,
+    item_id: "aee838dc-281f-41fd-8f48-c97c10769172",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=2rS9DNRGue"
   },
   {
     key: "gourdTelescopeToBox",
@@ -71,153 +63,217 @@ const GOURD_DEFINITIONS = [
     link: "https://wand.com/maps/big-walk/island-big-walk?location=VQyM2ZD5wl"
   },
   {
-    key: "gourdBasketball",
-    label: "Basketball",
-    area: "Red Tower",
-    solved_value: 1212,
-    item_id: "03b99000-0640-4f67-9da4-8eac378a4158",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=CEJsoxMB3f"
-  },
-  {
-    key: "gourdFielding",
-    label: "Fielding",
-    area: "Red Tower",
-    solved_value: 1032,
-    item_id: "e0da06cd-6f68-44d9-8541-7616d8c4de9a",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=SYxX36GE0m"
-  },
-  {
-    key: "gourdCannonBall",
-    label: "Cannonball",
-    area: "Main Peak",
-    solved_value: 1042,
-    item_id: "787f8a29-8752-4f45-b3bd-fc37bdc57ca2",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=RzGmyVXHVw"
-  },
-  {
-    key: "gourdWindowLabyrinth",
-    label: "Window Labyrinth",
-    area: "Red Tower",
-    solved_value: 1182,
-    item_id: "e854b404-7ad4-4b2c-82f9-54d1b0bf6591",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=3OEnnvKu1x"
+    key: "gourdTellerWindow",
+    label: "Teller Window",
+    area: "Intro Valley",
+    solved_value: 1402,
+    item_id: "84f2b536-41a9-4571-8304-579b3f5cf584",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=D064mC8dff"
   },
   {
     key: "gourdPointersParadise",
     label: "Pointers' Paradise",
-    area: "Red Tower",
+    area: "Red Tower Valley",
     solved_value: 1372,
     item_id: "c06844a3-c8fc-4019-9972-e3a7913ba8dc",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=ZAhP53vdOI"
   },
   {
-    key: "gourdOpticalTelegraph",
-    label: "Optical Telegraph",
-    area: "Green Tower",
-    solved_value: 1242,
-    item_id: "01fb88ad-d614-45f9-8f16-fd3fd06cd8bc",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=TYjbSFRxvb"
+    key: "gourdWindowLabyrinth",
+    label: "Window Labyrinth",
+    area: "Red Tower Valley",
+    solved_value: 1182,
+    item_id: "e854b404-7ad4-4b2c-82f9-54d1b0bf6591",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=3OEnnvKu1x"
   },
   {
-    key: "gourdObservationRoom",
-    label: "Observation Room",
-    area: "Blue Tower",
-    solved_value: 1172,
-    item_id: "ead91cc2-57d8-4556-878a-cb22174ff7b6",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=HexcYSYuSC"
+    key: "gourdFielding",
+    label: "Fielding",
+    area: "Red Tower Valley",
+    solved_value: 1032,
+    item_id: "e0da06cd-6f68-44d9-8541-7616d8c4de9a",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=SYxX36GE0m"
   },
   {
-    key: "gourdPoetAndPreist",
-    label: "Poet & Priest",
-    area: "Blue Tower",
-    solved_value: 1252,
-    item_id: "b10b2c30-96f5-4a31-9c04-e7d37ef0eab1",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=qqWcwBTAJh"
-  },
-  {
-    key: "gourdInvisibleInk",
-    label: "Invisible Ink",
-    area: "Blue Tower",
-    solved_value: 1052,
-    item_id: "7dba3ab6-54c3-4cf4-812f-a108d1d6c858",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=3MgXEZcVOM"
-  },
-  {
-    key: "gourdObby",
-    label: "Obby (Jungle Gym)",
-    area: "Blue Tower",
-    solved_value: 1132,
-    item_id: "9c0a4126-6e80-4ba4-aec0-533ff0da9dbf",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=PxSvnC0v5h"
-  },
-  {
-    key: "gourdCarousel",
-    label: "Carousel",
-    area: "Main Peak",
-    solved_value: 1142,
-    item_id: "79e09b95-3a26-4a4e-a494-af599948f1f5",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=sBZCroMVKc"
+    key: "gourdBasketball",
+    label: "Basketball",
+    area: "Red Tower Valley",
+    solved_value: 1212,
+    item_id: "03b99000-0640-4f67-9da4-8eac378a4158",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=CEJsoxMB3f"
   },
   {
     key: "gourdCoordinatesHolding",
     label: "Coordinates Holding",
-    area: "Red Tower",
+    area: "Red Tower Valley",
     solved_value: 1382,
     item_id: "723416d8-eff6-474e-ab5f-c3c398b1d799",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=ODh2DtA3Wz"
   },
   {
-    key: "gourdMemoryBombs",
-    label: "Memory Bombs",
-    area: "Green Tower",
-    solved_value: 1272,
-    item_id: "7e1cbead-d5b2-4d0a-b4a0-9a22f1c95856",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=qQkZQ8zVhX"
-  },
-  {
-    key: "gourdPerspectiveCounting",
-    label: "Perspective Counting",
-    area: "Green Tower",
-    solved_value: 1552,
-    item_id: "929cee23-1d31-4a8a-ad56-aec75acdf079",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=6XBZpckVKf"
+    key: "gourdOpticalTelegraph",
+    label: "Optical Telegraph",
+    area: "Green Tower Valley",
+    solved_value: 1242,
+    item_id: "01fb88ad-d614-45f9-8f16-fd3fd06cd8bc",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=TYjbSFRxvb"
   },
   {
     key: "gourdTrapRoom",
     label: "Trap Room",
-    area: "Green Tower",
+    area: "Green Tower Valley",
     solved_value: 1062,
     item_id: "e4dce483-ca49-4c24-b362-ec7304f6d4a1",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=a3dvJTZ4NL"
   },
   {
+    key: "gourdPerspectiveCounting",
+    label: "Perspective Counting",
+    area: "Green Tower Valley",
+    solved_value: 1552,
+    item_id: "929cee23-1d31-4a8a-ad56-aec75acdf079",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=6XBZpckVKf"
+  },
+  {
+    key: "gourdMemoryBombs",
+    label: "Memory Bombs",
+    area: "Green Tower Valley",
+    solved_value: 1272,
+    item_id: "7e1cbead-d5b2-4d0a-b4a0-9a22f1c95856",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=qQkZQ8zVhX"
+  },
+  {
+    key: "gourdSignalFlags",
+    label: "Signal Flags",
+    area: "Green Tower Valley",
+    solved_value: 1412,
+    item_id: "5a72ab76-fa7f-4b87-b967-6cd6c1d5990c",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=HflNKBlTOh"
+  },
+  {
     key: "gourdRingRoom",
     label: "Ring Room",
-    area: "Green Tower",
+    area: "Eastern Peninsula",
     solved_value: 1092,
     item_id: "8405503b-2ea3-4708-babe-e5cb47e75ba3",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=4t1RMh9cM3"
   },
   {
-    key: "gourdCabinFever",
-    label: "Cabin Fever",
-    area: "Blue Tower",
-    solved_value: 1002,
-    item_id: "903d3924-ec05-456d-aa5d-33f6431bf558",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=2VQaEJEHej"
+    key: "gourdBlindfoldFishtrap",
+    label: "Blindfold Fishtrap",
+    area: "Eastern Peninsula",
+    solved_value: 1542,
+    item_id: "a7feca56-e073-4649-b62b-dcbe064fb5a2",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=0dSRearIt4"
+  },
+  {
+    key: "gourdInvisibleInk",
+    label: "Invisible Ink",
+    area: "Eastern Peninsula",
+    solved_value: 1052,
+    item_id: "7dba3ab6-54c3-4cf4-812f-a108d1d6c858",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=3MgXEZcVOM"
+  },
+  {
+    key: "gourdMediumSimPress",
+    label: "Medium Sim Press",
+    area: "Eastern Peninsula",
+    solved_value: 1072,
+    item_id: "34ea1a2f-8dd1-4ac4-be39-80126a390464",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=gajZIOy8R0"
+  },
+  {
+    key: "gourdTileThief",
+    label: "Tile Thief",
+    area: "Eastern Peninsula",
+    solved_value: 1332,
+    item_id: "92b54fba-6b48-4273-b3e2-0f318a0a5825",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=R8yvFcsq3e"
+  },
+  {
+    key: "gourdObby",
+    label: "Obby (Jungle Gym)",
+    area: "Blue Tower Valley",
+    solved_value: 1132,
+    item_id: "9c0a4126-6e80-4ba4-aec0-533ff0da9dbf",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=PxSvnC0v5h"
   },
   {
     key: "gourdFlareRun",
     label: "Flare Run",
-    area: "Blue Tower",
+    area: "Blue Tower Valley",
     solved_value: 1572,
     item_id: "b151ce51-fda9-4caa-8ed2-d78fce41098b",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=6RAvziBMxT"
   },
   {
+    key: "gourdCabinFever",
+    label: "Cabin Fever",
+    area: "Blue Tower Valley",
+    solved_value: 1002,
+    item_id: "903d3924-ec05-456d-aa5d-33f6431bf558",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=2VQaEJEHej"
+  },
+  {
+    key: "gourdPoetAndPreist",
+    label: "Poet & Priest",
+    area: "Blue Tower Valley",
+    solved_value: 1252,
+    item_id: "b10b2c30-96f5-4a31-9c04-e7d37ef0eab1",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=qqWcwBTAJh"
+  },
+  {
+    key: "gourdMusicalHoliday",
+    label: "Musical Holiday",
+    area: "Blue Tower Valley",
+    solved_value: 1482,
+    item_id: "edd455c7-cdfd-467a-a854-5f44499df55c",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=fPtgjazuH8"
+  },
+  {
+    key: "gourdObservationRoom",
+    label: "Observation Room",
+    area: "Central Mountain",
+    solved_value: 1172,
+    item_id: "ead91cc2-57d8-4556-878a-cb22174ff7b6",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=HexcYSYuSC"
+  },
+  {
+    key: "gourdCannonBall",
+    label: "Cannonball",
+    area: "Central Mountain",
+    solved_value: 1042,
+    item_id: "787f8a29-8752-4f45-b3bd-fc37bdc57ca2",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=RzGmyVXHVw"
+  },
+  {
+    key: "gourdCarousel",
+    label: "Carousel",
+    area: "Central Mountain",
+    solved_value: 1142,
+    item_id: "79e09b95-3a26-4a4e-a494-af599948f1f5",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=sBZCroMVKc"
+  },
+  {
+    key: "gourdKickUpPits",
+    label: "Kick Up Pits",
+    area: "Central Mountain",
+    solved_value: 1492,
+    item_id: "67b16620-bb35-4254-89bd-9a27cc7c872c",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=TcK5afspRD"
+  },
+  {
+    key: "gourdBreadcrumbLoop",
+    label: "Breadcrumb Loop",
+    area: "Central Mountain",
+    solved_value: 1432,
+    item_id: "51ed260a-e519-4ac7-a8bb-79356344ffa6",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=XP2fJo6ord"
+  },
+  {
     key: "gourdCenturonSong",
-    label: "Centurion Song",
-    area: "Yellow Tower",
+    label: "Centuron Song",
+    area: "Northeast Valley",
     solved_value: 1472,
     item_id: "97454e67-9a62-495b-9fa9-7b01adcb5e04",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=O1LxQmss1Z"
@@ -225,23 +281,47 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdScoutBombs",
     label: "Scout Bombs",
-    area: "Yellow Tower",
+    area: "Northeast Valley",
     solved_value: 1442,
     item_id: "53ea5ed0-5534-4e3a-9500-5cf2f620c497",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=gITZaSa9Pr"
   },
   {
+    key: "gourdCoordinates",
+    label: "Coordinates",
+    area: "Northeast Valley",
+    solved_value: 1152,
+    item_id: "1831bcbf-fdbc-442b-a4bb-52270e0a24f9",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=XyXju3FoYM"
+  },
+  {
     key: "gourdIndoorSemaphore",
     label: "Indoor Semaphore",
-    area: "Yellow Tower",
+    area: "Northeast Valley",
     solved_value: 1232,
     item_id: "fe48178e-1ccc-41d4-9642-3b974efa2184",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=v4MNHJv1Sn"
   },
   {
+    key: "gourdBlindfoldCatwalk",
+    label: "Blindfold Catwalk",
+    area: "Northeast Valley",
+    solved_value: 1532,
+    item_id: "36332988-68d9-4e33-9cbb-dacd156dea83",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=hMp9uvI6OK"
+  },
+  {
+    key: "gourdConcert",
+    label: "Concert",
+    area: "Northwest Valley",
+    solved_value: 1222,
+    item_id: "f566452b-bde4-4328-b78a-f8a05e993f87",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=zpidHIVGZK"
+  },
+  {
     key: "gourdEggHunt",
     label: "Egg Hunt",
-    area: "Yellow Tower",
+    area: "Northwest Valley",
     solved_value: 1392,
     item_id: "bfd723fd-83a5-4942-8eb4-6e3586ec60eb",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=DklxRNOCem"
@@ -249,42 +329,18 @@ const GOURD_DEFINITIONS = [
   {
     key: "gourdMicrophoneArray",
     label: "Microphone Array",
-    area: "Yellow Tower",
+    area: "Northwest Valley",
     solved_value: 1352,
     item_id: "587c27b4-6ec3-408b-8390-96f80c65da16",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=Zz1j5IU3LN"
   },
   {
-    key: "gourdConcert",
-    label: "Concert",
-    area: "Yellow Tower",
-    solved_value: 1222,
-    item_id: "f566452b-bde4-4328-b78a-f8a05e993f87",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=zpidHIVGZK"
-  },
-  {
-    key: "gourdBlindfoldCatwalk",
-    label: "Blindfold Catwalk",
-    area: "Yellow Tower",
-    solved_value: 1532,
-    item_id: "36332988-68d9-4e33-9cbb-dacd156dea83",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=hMp9uvI6OK"
-  },
-  {
-    key: "gourdSignalFlags",
-    label: "Signal Flags",
-    area: "Green Tower",
-    solved_value: 1412,
-    item_id: "5a72ab76-fa7f-4b87-b967-6cd6c1d5990c",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=HflNKBlTOh"
-  },
-  {
-    key: "gourdDancerAndSelecter",
-    label: "Dancer & Selector",
-    area: "Purple",
-    solved_value: 1512,
-    item_id: "30bc3f4c-08fc-47ca-a95b-36df9efed8bf",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=QBuNm1ZBkO"
+    key: "gourdSingerAndSelecter",
+    label: "Singer & Selector",
+    area: "Northwest Valley",
+    solved_value: 1502,
+    item_id: "9b70befb-d3f4-4deb-ad32-939ec6a20005",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=Igvfj7Smjz"
   },
   {
     key: "gourdCabinFeverLong",
@@ -295,52 +351,28 @@ const GOURD_DEFINITIONS = [
     link: "https://wand.com/maps/big-walk/island-big-walk?location=3Z2jKrNahO"
   },
   {
-    key: "gourdKickUpPits",
-    label: "Kick Up Pits",
-    area: "Main Peak",
-    solved_value: 1492,
-    item_id: "67b16620-bb35-4254-89bd-9a27cc7c872c",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=TcK5afspRD"
-  },
-  {
-    key: "gourdCoordinates",
-    label: "Coordinates",
-    area: "Green Tower",
-    solved_value: 1152,
-    item_id: "1831bcbf-fdbc-442b-a4bb-52270e0a24f9",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=XyXju3FoYM"
-  },
-  {
-    key: "gourdBlindfoldFishtrap",
-    label: "Blindfold Fishtrap",
-    area: "Green Tower",
-    solved_value: 1542,
-    item_id: "a7feca56-e073-4649-b62b-dcbe064fb5a2",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=0dSRearIt4"
-  },
-  {
-    key: "gourdMediumSimPress",
-    label: "Medium Sim Press",
-    area: "Green Tower",
-    solved_value: 1072,
-    item_id: "34ea1a2f-8dd1-4ac4-be39-80126a390464",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=gajZIOy8R0"
-  },
-  {
-    key: "gourdBreadcrumbLoop",
-    label: "Breadcrumb Loop",
-    area: "Main Peak",
-    solved_value: 1432,
-    item_id: "51ed260a-e519-4ac7-a8bb-79356344ffa6",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=XP2fJo6ord"
-  },
-  {
     key: "gourdCannonballCommute",
     label: "Cannonball Commute",
     area: "Purple",
     solved_value: 1582,
     item_id: "bba47059-5dc0-4f0c-9a91-ed0232a2babb",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=st463T6boQ"
+  },
+  {
+    key: "gourdCenturionSeance",
+    label: "Centurion Seance",
+    area: "Purple",
+    solved_value: 1562,
+    item_id: "e9d4ceeb-0735-48aa-a2f2-996b36eeba8a",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=xwzTIiIwNZ"
+  },
+  {
+    key: "gourdDancerAndSelecter",
+    label: "Dancer & Selector",
+    area: "Purple",
+    solved_value: 1512,
+    item_id: "30bc3f4c-08fc-47ca-a95b-36df9efed8bf",
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=QBuNm1ZBkO"
   },
   {
     key: "gourdCharadesRooms",
@@ -366,38 +398,6 @@ const GOURD_DEFINITIONS = [
     item_id: "cbbca208-0dcf-40a9-b5c2-2bab30e80e05",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=bCKKgZguI4"
   },
-  {
-    key: "gourdTileThief",
-    label: "Tile Thief",
-    area: "Green Tower",
-    solved_value: 1332,
-    item_id: "92b54fba-6b48-4273-b3e2-0f318a0a5825",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=R8yvFcsq3e"
-  },
-  {
-    key: "gourdCenturionSeance",
-    label: "Centurion Seance",
-    area: "Purple",
-    solved_value: 1562,
-    item_id: "e9d4ceeb-0735-48aa-a2f2-996b36eeba8a",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=xwzTIiIwNZ"
-  },
-  {
-    key: "gourdMusicalHoliday",
-    label: "Musical Holiday",
-    area: "Blue Tower",
-    solved_value: 1482,
-    item_id: "edd455c7-cdfd-467a-a854-5f44499df55c",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=fPtgjazuH8"
-  },
-  {
-    key: "gourdSingerAndSelecter",
-    label: "Singer & Selector",
-    area: "Yellow Tower",
-    solved_value: 1502,
-    item_id: "9b70befb-d3f4-4deb-ad32-939ec6a20005",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=Igvfj7Smjz"
-  }
 ];
 
 // Gourd Placement Slots
