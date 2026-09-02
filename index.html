@@ -26,89 +26,92 @@
       <button id="exportBtn" class="btn">💾 Export Save File</button>
     </div>
 
-    <!-- Gates & Zone Unlocks (Collapsible) -->
-    <details class="card">
-      <summary>Gates & Zone Unlocks</summary>
-      <div class="collapsible-body">
-        <div class="section-toolbar">
-          <button class="btn-sm" id="btnDisableAllUnlocks">Disable All</button>
-          <button class="btn-sm" id="btnEnableAllUnlocks">Enable All</button>
+    <!-- Responsive Multi-Column Section Grid -->
+    <div class="sections-grid">
+      <!-- Gates & Zone Unlocks (Collapsible) -->
+      <details class="card">
+        <summary>Gates & Zone Unlocks</summary>
+        <div class="collapsible-body">
+          <div class="section-toolbar">
+            <button class="btn-sm" id="btnDisableAllUnlocks">Disable All</button>
+            <button class="btn-sm" id="btnEnableAllUnlocks">Enable All</button>
+          </div>
+          <div id="unlocksContainer" class="grid-2"></div>
         </div>
-        <div id="unlocksContainer" class="grid-2"></div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Endgame Gauntlet (Collapsible) -->
-    <details class="card">
-      <summary>Endgame Gauntlet</summary>
-      <div class="collapsible-body">
-        <div class="section-toolbar">
-          <button class="btn-sm" id="btnDisableAllGauntlet">Disable All</button>
-          <button class="btn-sm" id="btnEnableAllGauntlet">Enable All</button>
+      <!-- Endgame Gauntlet (Collapsible) -->
+      <details class="card">
+        <summary>Endgame Gauntlet</summary>
+        <div class="collapsible-body">
+          <div class="section-toolbar">
+            <button class="btn-sm" id="btnDisableAllGauntlet">Disable All</button>
+            <button class="btn-sm" id="btnEnableAllGauntlet">Enable All</button>
+          </div>
+          <div id="gauntletContainer" class="grid-2"></div>
         </div>
-        <div id="gauntletContainer" class="grid-2"></div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Radio Stations (Collapsible) -->
-    <details class="card">
-      <summary>Radio Stations</summary>
-      <div class="collapsible-body">
-        <div class="section-toolbar">
-          <button class="btn-sm" id="btnDisableAllRadios">Disable All</button>
-          <button class="btn-sm" id="btnEnableAllRadios">Enable All</button>
+      <!-- Radio Stations (Collapsible) -->
+      <details class="card">
+        <summary>Radio Stations</summary>
+        <div class="collapsible-body">
+          <div class="section-toolbar">
+            <button class="btn-sm" id="btnDisableAllRadios">Disable All</button>
+            <button class="btn-sm" id="btnEnableAllRadios">Enable All</button>
+          </div>
+          <div id="radiosContainer" class="grid-2"></div>
         </div>
-        <div id="radiosContainer" class="grid-2"></div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Orb Beacons (Collapsible) -->
-    <details class="card">
-      <summary>Orb Beacons</summary>
-      <div class="collapsible-body">
-        <div class="section-toolbar">
-          <button class="btn-sm" id="btnAllBeaconsOff">All Off</button>
-          <button class="btn-sm" id="btnAllBeaconsOn">All On</button>
-          <button class="btn-sm" id="btnAllBeaconsInv">All in Inventory</button>
+      <!-- Orb Beacons (Collapsible - Full Width) -->
+      <details class="card col-span-full">
+        <summary>Orb Beacons</summary>
+        <div class="collapsible-body">
+          <div class="section-toolbar">
+            <button class="btn-sm" id="btnAllBeaconsOff">All Off</button>
+            <button class="btn-sm" id="btnAllBeaconsOn">All On</button>
+            <button class="btn-sm" id="btnAllBeaconsInv">All in Inventory</button>
+          </div>
+          <div id="orbBeaconsContainer"></div>
         </div>
-        <div id="orbBeaconsContainer" class="grid-2"></div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Gourds (Collapsible) -->
-    <details class="card">
-      <summary>Gourds</summary>
-      <div class="collapsible-body">
-        <div class="section-toolbar">
-          <button class="btn-sm" id="btnAllGourdsUnsolved">All Unsolved</button>
-          <button class="btn-sm" id="btnAllGourdsPuzzle">All at Puzzle</button>
-          <button class="btn-sm" id="btnAllGourdsInventory">All in Inventory</button>
-          <button class="btn-sm" id="btnAllGourdsPlaced">All Placed</button>
+      <!-- Gourds (Collapsible - Full Width) -->
+      <details class="card col-span-full">
+        <summary>Gourds</summary>
+        <div class="collapsible-body">
+          <div class="section-toolbar">
+            <button class="btn-sm" id="btnAllGourdsUnsolved">All Unsolved</button>
+            <button class="btn-sm" id="btnAllGourdsPuzzle">All at Puzzle</button>
+            <button class="btn-sm" id="btnAllGourdsInventory">All in Inventory</button>
+            <button class="btn-sm" id="btnAllGourdsPlaced">All Placed</button>
+          </div>
+          <div id="gourdsContainer"></div>
         </div>
-        <div id="gourdsContainer"></div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Character Colors (Collapsible) -->
-    <details class="card">
-      <summary>Character Colors</summary>
-      <div class="collapsible-body">
-        <div class="section-toolbar">
-          <button class="btn-sm" id="btnLookupAllSteam">Lookup All Steam Names</button>
+      <!-- Character Colors (Collapsible - Full Width) -->
+      <details class="card col-span-full">
+        <summary>Character Colors</summary>
+        <div class="collapsible-body">
+          <div class="section-toolbar">
+            <button class="btn-sm" id="btnLookupAllSteam">Lookup All Steam Names</button>
+          </div>
+          <div id="characterColorsContainer"></div>
         </div>
-        <div id="characterColorsContainer"></div>
-      </div>
-    </details>
+      </details>
 
-    <!-- Inventory Items -->
-    <div class="card">
-      <h3>Inventory Items</h3>
-      <div class="search-bar">
-        <input type="text" id="itemSearch" list="availableItemsList" placeholder="Search item to add (e.g. Compass, Flashlight)...">
-        <datalist id="availableItemsList"></datalist>
-        <button id="addItemBtn" class="btn">Add Item</button>
+      <!-- Inventory Items (Full Width) -->
+      <div class="card col-span-full">
+        <h3>Inventory Items</h3>
+        <div class="search-bar">
+          <input type="text" id="itemSearch" list="availableItemsList" placeholder="Search item to add (e.g. Compass, Flashlight)...">
+          <datalist id="availableItemsList"></datalist>
+          <button id="addItemBtn" class="btn">Add Item</button>
+        </div>
+        <div id="inventoryContainer" class="inventory-list"></div>
       </div>
-      <div id="inventoryContainer" class="inventory-list"></div>
     </div>
   </div>
 </div>

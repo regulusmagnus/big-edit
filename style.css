@@ -18,7 +18,11 @@ body {
   padding: 2rem 1rem;
 }
 
-.container { max-width: 820px; margin: 0 auto; }
+.container {
+  max-width: 1440px;
+  width: 95%;
+  margin: 0 auto;
+}
 h1 { font-size: 1.75rem; margin: 0 0 1.5rem; text-align: center; }
 h2, h3, h4 { margin-top: 0; }
 
@@ -53,12 +57,24 @@ h2, h3, h4 { margin-top: 0; }
   user-select: all;
 }
 
+/* Dashboard Section Grid */
+.sections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.col-span-full {
+  grid-column: 1 / -1;
+}
+
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 /* Native Accordion Styling */
@@ -115,7 +131,7 @@ details.card[open] summary::after {
 
 .grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 0.75rem;
 }
 
@@ -171,23 +187,60 @@ input:checked + .slider:before { transform: translateX(20px); }
   color: var(--accent);
 }
 
-/* Gourd Styles */
-.area-group { margin-bottom: 1.5rem; }
-.area-group:last-child { margin-bottom: 0; }
+/* Orb Beacons Multi-Column Grid */
+#orbBeaconsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.5rem;
+}
+
+#orbBeaconsContainer .toggle-row {
+  padding: 0.45rem 0.75rem;
+}
+
+#orbBeaconsContainer .radio-group {
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+
+/* Gourd Area Groups Side-by-Side */
+#gourdsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.area-group {
+  background: #141417;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0;
+}
+
 .area-title {
   font-size: 0.95rem;
+  font-weight: 700;
   color: var(--accent);
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #222228;
 }
+
 .gourd-card {
-  background: #141417;
+  background: #1c1c22;
   border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 0.85rem 1rem;
   margin-bottom: 0.6rem;
 }
+.gourd-card:last-child {
+  margin-bottom: 0;
+}
+
 .gourd-header {
   display: flex;
   justify-content: space-between;
@@ -196,11 +249,11 @@ input:checked + .slider:before { transform: translateX(20px); }
 .gourd-controls {
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #222228;
+  border-top: 1px solid #2a2b33;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1rem;
   font-size: 0.9rem;
 }
 .radio-group {
@@ -227,7 +280,7 @@ input:checked + .slider:before { transform: translateX(20px); }
   font-weight: 500;
 }
 .slot-select {
-  background: #1e1e24;
+  background: #141417;
   color: var(--text);
   border: 1px solid var(--card-border);
   border-radius: 6px;
@@ -235,17 +288,22 @@ input:checked + .slider:before { transform: translateX(20px); }
   font-size: 0.85rem;
 }
 
-/* Character Color Styles */
+/* Character Colors Multi-Column Grid */
+#characterColorsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
 .player-card {
   background: #141417;
   border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 1rem;
-  margin-bottom: 0.75rem;
-}
-.player-card:last-child {
   margin-bottom: 0;
 }
+
 .player-header {
   display: flex;
   justify-content: space-between;
@@ -280,8 +338,8 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 .color-slots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
 }
 .color-slot {
   display: flex;
@@ -387,7 +445,14 @@ input:checked + .slider:before { transform: translateX(20px); }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .hidden { display: none; }
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+  .sections-grid {
+    grid-template-columns: 1fr;
+  }
+}
