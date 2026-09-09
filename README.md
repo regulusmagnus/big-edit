@@ -30,3 +30,4 @@ Note: House House states that there is not canon terminology for the various thi
 
 - All new save files start with two light fixtures turned on. One is at the paint station in the intro valley. If you have all in-game achievements you might be able to guess the other!
 - All save files have a world seed value. I have no idea what this is used for!
+- The empty beacon pedestals create an entry in the save file if you first place an orb there, then remove it, however this has no actual effect (i.e. reloading the game will return whichever orb you placed there back to its spawn)
