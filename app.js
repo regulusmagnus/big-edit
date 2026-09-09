@@ -40,6 +40,7 @@ const unlocksContainer = document.getElementById('unlocksContainer');
 const gauntletContainer = document.getElementById('gauntletContainer');
 const radiosContainer = document.getElementById('radiosContainer');
 const orbBeaconsContainer = document.getElementById('orbBeaconsContainer');
+const lightFixturesContainer = document.getElementById('lightFixturesContainer');
 const gourdsContainer = document.getElementById('gourdsContainer');
 const characterColorsContainer = document.getElementById('characterColorsContainer');
 const inventoryContainer = document.getElementById('inventoryContainer');
@@ -55,6 +56,8 @@ const btnEnableAllRadios = document.getElementById('btnEnableAllRadios');
 const btnAllBeaconsOff = document.getElementById('btnAllBeaconsOff');
 const btnAllBeaconsOn = document.getElementById('btnAllBeaconsOn');
 const btnAllBeaconsInv = document.getElementById('btnAllBeaconsInv');
+const btnDisableAllLights = document.getElementById('btnDisableAllLights');
+const btnEnableAllLights = document.getElementById('btnEnableAllLights');
 const btnAllGourdsUnsolved = document.getElementById('btnAllGourdsUnsolved');
 const btnAllGourdsPuzzle = document.getElementById('btnAllGourdsPuzzle');
 const btnAllGourdsInventory = document.getElementById('btnAllGourdsInventory');
@@ -241,7 +244,7 @@ function isKeyPresent(key) {
   return savePayload.entries.some(item => item && item.key === key);
 }
 
-function setKeyPresent(key, isEnabled, defaultValue) {
+function setKeyPresent(key, isEnabled, defaultValue = 1) {
   const index = savePayload.entries.findIndex(item => item && item.key === key);
   if (isEnabled && index === -1) {
     savePayload.entries.push({ key: key, value: defaultValue });
@@ -286,7 +289,7 @@ function renderToggleGroup(container, definitions) {
       </label>
     `;
     row.querySelector('input').addEventListener('change', (e) => {
-      setKeyPresent(def.key, e.target.checked, def.value);
+      setKeyPresent(def.key, e.target.checked, def.value !== undefined ? def.value : 1);
     });
     container.appendChild(row);
   });
@@ -380,6 +383,32 @@ function renderOrbBeacons() {
     });
 
     orbBeaconsContainer.appendChild(row);
+  });
+}
+
+// Static Light Fixtures Renderer
+function renderLightFixtures() {
+  if (!lightFixturesContainer) return;
+  lightFixturesContainer.innerHTML = '';
+  if (typeof LIGHT_FIXTURE_DATABASE === 'undefined' || !Array.isArray(LIGHT_FIXTURE_DATABASE)) return;
+
+  LIGHT_FIXTURE_DATABASE.forEach(fixture => {
+    const active = isKeyPresent(fixture.key);
+    const row = document.createElement('div');
+    row.className = 'toggle-row';
+    row.innerHTML = `
+      <span>${fixture.label}</span>
+      <label class="switch">
+        <input type="checkbox" ${active ? 'checked' : ''}>
+        <span class="slider"></span>
+      </label>
+    `;
+
+    row.querySelector('input').addEventListener('change', (e) => {
+      setKeyPresent(fixture.key, e.target.checked, 1);
+    });
+
+    lightFixturesContainer.appendChild(row);
   });
 }
 
@@ -730,6 +759,7 @@ function renderUI() {
   renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
   renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
   renderOrbBeacons();
+  renderLightFixtures();
   renderGourds();
   renderCharacterColors();
   renderInventory();
@@ -816,6 +846,25 @@ function setAllOrbBeaconsBulk(mode) {
 if (btnAllBeaconsOff) btnAllBeaconsOff.onclick = () => setAllOrbBeaconsBulk('off');
 if (btnAllBeaconsOn) btnAllBeaconsOn.onclick = () => setAllOrbBeaconsBulk('on');
 if (btnAllBeaconsInv) btnAllBeaconsInv.onclick = () => setAllOrbBeaconsBulk('inventory');
+
+// Bulk Static Light Fixtures
+if (btnDisableAllLights) {
+  btnDisableAllLights.onclick = () => {
+    if (typeof LIGHT_FIXTURE_DATABASE !== 'undefined') {
+      LIGHT_FIXTURE_DATABASE.forEach(fixture => setKeyPresent(fixture.key, false, 1));
+    }
+    renderLightFixtures();
+  };
+}
+
+if (btnEnableAllLights) {
+  btnEnableAllLights.onclick = () => {
+    if (typeof LIGHT_FIXTURE_DATABASE !== 'undefined') {
+      LIGHT_FIXTURE_DATABASE.forEach(fixture => setKeyPresent(fixture.key, true, 1));
+    }
+    renderLightFixtures();
+  };
+}
 
 function setAllGourdsBulk(targetMode) {
   if (typeof GOURD_DEFINITIONS === 'undefined' || typeof GOURD_SLOTS === 'undefined') return;

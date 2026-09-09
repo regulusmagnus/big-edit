@@ -15,16 +15,17 @@ Note: House House states that there is not canon terminology for the various thi
 - Unlock/disable features requiring completed big keys
 - Unlock/complete end-game content
 - Enable/disable radio stations
-- Add/remove items from the "Lost & Found" pedestal in the starting area
 - Unlock gourds and modify where they have been placed
+- Add/remove items from the "Lost & Found" pedestal in the starting area
+- Change character colors
 - Enable/disable orb beacon lights, or place them all in your inventory (try it! it's hilarious!)
 - Gourds and orb beacons link to locations on the wand.com interactive map
-- Change character colors
+- Enable/disable static light fixtures
 
 ## To Do
 
-- Add in enable/disable for additional (static) light fixtures
 - Add editing in-game sign text
+- Add puzzle tiles to inventory/Lost & Found toggles
 
 ### Fun Facts
 

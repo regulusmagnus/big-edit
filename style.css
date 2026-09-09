@@ -203,6 +203,17 @@ input:checked + .slider:before { transform: translateX(20px); }
   font-size: 0.85rem;
 }
 
+/* Static Light Fixtures Multi-Column Grid */
+#lightFixturesContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.5rem;
+}
+
+#lightFixturesContainer .toggle-row {
+  padding: 0.45rem 0.75rem;
+}
+
 /* Gourd Area Groups Side-by-Side */
 #gourdsContainer {
   display: grid;
