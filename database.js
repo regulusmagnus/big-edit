@@ -853,3 +853,11 @@ const INVENTORY_DATABASE = [
   { item_id: "5fa8468a-dfaa-48fe-8057-46d47b9e56a5", type: "Miscellaneous", label: "Gourd Case" },
   { item_id: "fdf796fb-fe22-4ee2-b2aa-f0ad071a279a", type: "Miscellaneous", label: "Orb (basketball)" },
 ];
+
+// Editable Signs
+const SIGN_DEFINITIONS = [
+  { key: "8456dbd2-ab79-449d-9c7e-005d97c369a4", label: "Sign 1" },
+  { key: "a9d02409-867d-424f-9aab-ee950674b05c", label: "Sign 2" },
+  { key: "e4bc3aa1-0c9e-4566-8f67-d1fc59486d90", label: "Sign 3" },
+  { key: "78f4221a-b9c4-4db9-ba1e-66d3e4ab7009", label: "Sign 4" }
+];

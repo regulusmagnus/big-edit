@@ -456,3 +456,53 @@ input:checked + .slider:before { transform: translateX(20px); }
     grid-template-columns: 1fr;
   }
 }
+
+/* Editable Signs Multi-Column Grid */
+#signsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.sign-card {
+  background: #141417;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sign-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sign-card-header label {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sign-input {
+  width: 100%;
+  background: #1c1c22;
+  color: var(--text);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 70px;
+  box-sizing: border-box;
+}
+
+.sign-input:focus {
+  outline: 1px solid var(--accent);
+}

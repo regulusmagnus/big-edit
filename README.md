@@ -21,11 +21,12 @@ Note: House House states that there is not canon terminology for the various thi
 - Enable/disable orb beacon lights, or place them all in your inventory (try it! it's hilarious!)
 - Gourds and orb beacons link to locations on the wand.com interactive map
 - Enable/disable static light fixtures
+- Edit in-game sign text
 
 ## To Do
 
-- Add editing in-game sign text
 - Add puzzle tiles to inventory/Lost & Found toggles
+- Add a map, like Breath of the Wild's *Hero's Path*, that plots the order in which things were accessed (lights first toggled, puzzles solved, keys placed)
 
 ### Fun Facts
 

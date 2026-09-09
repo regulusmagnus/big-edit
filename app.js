@@ -44,6 +44,7 @@ const lightFixturesContainer = document.getElementById('lightFixturesContainer')
 const gourdsContainer = document.getElementById('gourdsContainer');
 const characterColorsContainer = document.getElementById('characterColorsContainer');
 const inventoryContainer = document.getElementById('inventoryContainer');
+const signsContainer = document.getElementById('signsContainer');
 const exportBtn = document.getElementById('exportBtn');
 
 // Bulk Button Elements
@@ -65,6 +66,7 @@ const btnAllGourdsPlaced = document.getElementById('btnAllGourdsPlaced');
 const btnLookupAllSteam = document.getElementById('btnLookupAllSteam');
 const btnClearAllInventory = document.getElementById('btnClearAllInventory');
 const btnSelectAllInventory = document.getElementById('btnSelectAllInventory');
+const btnClearAllSigns = document.getElementById('btnClearAllSigns');
 
 // Copy save file path to clipboard
 function copySavePath(e) {
@@ -230,6 +232,7 @@ function loadFile(file) {
       savePayload = JSON.parse(e.target.result);
       if (!Array.isArray(savePayload.entries)) savePayload.entries = [];
       if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
+      if (!Array.isArray(savePayload.stringEntries)) savePayload.stringEntries = [];
       renderUI();
       dropZone.classList.add('hidden');
       editorContent.classList.remove('hidden');
@@ -258,7 +261,34 @@ function getEntryValue(key) {
   return entry ? entry.value : null;
 }
 
-// Ending Gate: 0 = Unlocked, 1 = Locked (Inverted state; never deleted)
+// String Entries helpers (Signs)
+function getStringEntryValue(key) {
+  if (!savePayload || !Array.isArray(savePayload.stringEntries)) return "";
+  const entry = savePayload.stringEntries.find(item => item && item.key === key);
+  return entry ? entry.value : "";
+}
+
+function setStringEntryValue(key, text) {
+  if (!savePayload) return;
+  if (!Array.isArray(savePayload.stringEntries)) savePayload.stringEntries = [];
+
+  const index = savePayload.stringEntries.findIndex(item => item && item.key === key);
+
+  if (!text || text.length === 0) {
+    // If empty, remove the entry so it matches unedited state
+    if (index !== -1) {
+      savePayload.stringEntries.splice(index, 1);
+    }
+  } else {
+    if (index !== -1) {
+      savePayload.stringEntries[index].value = text;
+    } else {
+      savePayload.stringEntries.push({ key: key, value: text });
+    }
+  }
+}
+
+// Ending Gate: 0 = Unlocked, 1 = Locked (never deleted)
 function getEndingGateUnlocked() {
   const val = getEntryValue("EndingGate");
   return val === 0;
@@ -409,6 +439,40 @@ function renderLightFixtures() {
     });
 
     lightFixturesContainer.appendChild(row);
+  });
+}
+
+// Editable Signs Renderer
+function renderSigns() {
+  if (!signsContainer) return;
+  signsContainer.innerHTML = '';
+  if (typeof SIGN_DEFINITIONS === 'undefined' || !Array.isArray(SIGN_DEFINITIONS)) return;
+
+  SIGN_DEFINITIONS.forEach(sign => {
+    const currentValue = getStringEntryValue(sign.key);
+    const card = document.createElement('div');
+    card.className = 'sign-card';
+    card.innerHTML = `
+      <div class="sign-card-header">
+        <label>${sign.label}</label>
+        <button type="button" class="btn-sm btn-clear-sign">Clear</button>
+      </div>
+      <textarea class="sign-input" placeholder="Empty / unedited...">${currentValue}</textarea>
+    `;
+
+    const textarea = card.querySelector('.sign-input');
+    const clearBtn = card.querySelector('.btn-clear-sign');
+
+    textarea.addEventListener('input', (e) => {
+      setStringEntryValue(sign.key, e.target.value);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      textarea.value = '';
+      setStringEntryValue(sign.key, '');
+    });
+
+    signsContainer.appendChild(card);
   });
 }
 
@@ -760,6 +824,7 @@ function renderUI() {
   renderToggleGroup(radiosContainer, RADIO_DEFINITIONS);
   renderOrbBeacons();
   renderLightFixtures();
+  renderSigns();
   renderGourds();
   renderCharacterColors();
   renderInventory();
@@ -863,6 +928,18 @@ if (btnEnableAllLights) {
       LIGHT_FIXTURE_DATABASE.forEach(fixture => setKeyPresent(fixture.key, true, 1));
     }
     renderLightFixtures();
+  };
+}
+
+// Bulk Signs Operations
+if (btnClearAllSigns) {
+  btnClearAllSigns.onclick = () => {
+    if (!savePayload || typeof SIGN_DEFINITIONS === 'undefined') return;
+    if (Array.isArray(savePayload.stringEntries)) {
+      const signKeys = new Set(SIGN_DEFINITIONS.map(s => s.key));
+      savePayload.stringEntries = savePayload.stringEntries.filter(entry => !signKeys.has(entry.key));
+    }
+    renderSigns();
   };
 }
 
