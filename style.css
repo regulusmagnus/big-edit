@@ -222,6 +222,14 @@ input:checked + .slider:before { transform: translateX(20px); }
   align-items: start;
 }
 
+/* Tile Area Groups Side-by-Side */
+#tilesContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
 .area-group {
   background: #141417;
   border: 1px solid var(--card-border);

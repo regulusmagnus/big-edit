@@ -45,6 +45,7 @@ const gourdsContainer = document.getElementById('gourdsContainer');
 const characterColorsContainer = document.getElementById('characterColorsContainer');
 const inventoryContainer = document.getElementById('inventoryContainer');
 const signsContainer = document.getElementById('signsContainer');
+const tilesContainer = document.getElementById('tilesContainer');
 const exportBtn = document.getElementById('exportBtn');
 
 // Bulk Button Elements
@@ -67,6 +68,8 @@ const btnLookupAllSteam = document.getElementById('btnLookupAllSteam');
 const btnClearAllInventory = document.getElementById('btnClearAllInventory');
 const btnSelectAllInventory = document.getElementById('btnSelectAllInventory');
 const btnClearAllSigns = document.getElementById('btnClearAllSigns');
+const btnAllTilesNotFound = document.getElementById('btnAllTilesNotFound');
+const btnAllTilesInventory = document.getElementById('btnAllTilesInventory');
 
 // Copy save file path to clipboard
 function copySavePath(e) {
@@ -476,6 +479,161 @@ function renderSigns() {
   });
 }
 
+// Puzzle Tiles State Logic
+function getTileState(tile) {
+  const entry = savePayload?.entries?.find(e => e && e.key === tile.item_id);
+  const inInventory = Boolean(savePayload?.inventory?.includes(tile.item_id));
+
+  // If in inventory, prioritize Inventory radio regardless of entry existence
+  if (inInventory) {
+    return { found: true, mode: 'inventory', slotValue: null };
+  }
+  // If in entries and not 0, it is placed in a slot
+  if (entry && Number(entry.value) !== 0) {
+    return { found: true, mode: 'placed', slotValue: Number(entry.value) };
+  }
+  // If entry.value === 0 or no entry at all, it is unselected / not found
+  return { found: false, mode: 'inventory', slotValue: null };
+}
+
+function getTakenTileSlots(excludeItemId = null) {
+  const taken = new Set();
+  if (!savePayload || !Array.isArray(savePayload.entries) || typeof TILE_DEFINITIONS === 'undefined') {
+    return taken;
+  }
+  TILE_DEFINITIONS.forEach(t => {
+    if (t.item_id === excludeItemId) return;
+    const entry = savePayload.entries.find(e => e && e.key === t.item_id);
+    const inInventory = savePayload.inventory && savePayload.inventory.includes(t.item_id);
+    if (entry && Number(entry.value) !== 0 && !inInventory) {
+      taken.add(Number(entry.value));
+    }
+  });
+  return taken;
+}
+
+function applyTileState(tile, isFound, mode, slotValue) {
+  const entryIdx = savePayload.entries.findIndex(e => e && e.key === tile.item_id);
+  savePayload.inventory = savePayload.inventory.filter(id => id !== tile.item_id);
+
+  if (!isFound) {
+    // If an entry already existed, set to 0 to match game's unplaced state
+    if (entryIdx !== -1) {
+      savePayload.entries[entryIdx].value = 0;
+    }
+  } else if (mode === 'inventory') {
+    if (entryIdx !== -1) {
+      savePayload.entries[entryIdx].value = 0;
+    }
+    if (!savePayload.inventory.includes(tile.item_id)) {
+      savePayload.inventory.push(tile.item_id);
+    }
+  } else if (mode === 'placed' && slotValue != null) {
+    if (entryIdx !== -1) {
+      savePayload.entries[entryIdx].value = Number(slotValue);
+    } else {
+      savePayload.entries.push({ key: tile.item_id, value: Number(slotValue) });
+    }
+  }
+
+  renderInventory();
+  renderTiles();
+}
+
+// Puzzle Tiles Renderer
+function renderTiles() {
+  if (!tilesContainer) return;
+  tilesContainer.innerHTML = '';
+  if (typeof TILE_DEFINITIONS === 'undefined' || !Array.isArray(TILE_DEFINITIONS)) return;
+
+  const puzzleGroups = {};
+  TILE_DEFINITIONS.forEach(tile => {
+    const puzzle = tile.puzzle || "Puzzle Tiles";
+    if (!puzzleGroups[puzzle]) puzzleGroups[puzzle] = [];
+    puzzleGroups[puzzle].push(tile);
+  });
+
+  Object.keys(puzzleGroups).forEach(puzzle => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'area-group';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'area-title';
+    titleEl.textContent = puzzle;
+    groupEl.appendChild(titleEl);
+
+    puzzleGroups[puzzle].forEach(tile => {
+      const state = getTileState(tile);
+      const takenSlots = getTakenTileSlots(tile.item_id);
+
+      const availableSlots = (typeof TILE_SLOTS !== 'undefined' ? TILE_SLOTS : []).filter(slot => {
+        return !takenSlots.has(Number(slot.value)) || Number(slot.value) === Number(state.slotValue);
+      });
+
+      // Disable 'Placed' option if all slots are occupied by other tiles
+      const canPlace = state.mode === 'placed' || availableSlots.length > 0;
+
+      let activeSlotValue = state.slotValue;
+      if (!availableSlots.some(s => Number(s.value) === Number(activeSlotValue))) {
+        activeSlotValue = availableSlots[0]?.value ?? null;
+      }
+
+      const slotOptions = availableSlots.length > 0
+        ? availableSlots.map(slot => {
+            const selected = Number(slot.value) === Number(activeSlotValue) ? 'selected' : '';
+            return `<option value="${slot.value}" ${selected}>Slot ${slot.slot_number} (${slot.value})</option>`;
+          }).join('')
+        : `<option disabled>No Slots Available</option>`;
+
+      const card = document.createElement('div');
+      card.className = 'gourd-card';
+      card.innerHTML = `
+        <div class="gourd-header">
+          <span><strong>Tile ${tile.label}</strong></span>
+          <label class="switch">
+            <input type="checkbox" class="tile-found-toggle" ${state.found ? 'checked' : ''}>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="gourd-controls ${state.found ? '' : 'hidden'}">
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="tile_mode_${tile.item_id}" value="inventory" ${state.mode === 'inventory' ? 'checked' : ''}>
+              <span>Inventory</span>
+            </label>
+            <label class="${canPlace ? '' : 'disabled'}" ${canPlace ? '' : 'title="All 4 slots are occupied"'}>
+              <input type="radio" name="tile_mode_${tile.item_id}" value="placed" ${state.mode === 'placed' ? 'checked' : ''} ${canPlace ? '' : 'disabled'}>
+              <span>Placed</span>
+            </label>
+          </div>
+          <div class="slot-select-wrapper ${state.mode === 'placed' ? '' : 'hidden'}">
+            <select class="slot-select">${slotOptions}</select>
+          </div>
+        </div>
+      `;
+
+      const foundToggle = card.querySelector('.tile-found-toggle');
+      const radioInputs = card.querySelectorAll(`input[name="tile_mode_${tile.item_id}"]`);
+      const slotSelect = card.querySelector('.slot-select');
+
+      function triggerUpdate() {
+        const found = foundToggle.checked;
+        const selectedMode = Array.from(radioInputs).find(r => r.checked && !r.disabled)?.value || 'inventory';
+        const selectedSlot = slotSelect ? slotSelect.value : activeSlotValue;
+        applyTileState(tile, found, selectedMode, selectedSlot);
+      }
+
+      foundToggle.addEventListener('change', triggerUpdate);
+      radioInputs.forEach(radio => radio.addEventListener('change', triggerUpdate));
+      if (slotSelect) slotSelect.addEventListener('change', triggerUpdate);
+
+      groupEl.appendChild(card);
+    });
+
+    tilesContainer.appendChild(groupEl);
+  });
+}
+
 function getTakenSlots(excludeGourdKey = null) {
   const taken = new Set();
   if (!savePayload || !Array.isArray(savePayload.entries) || typeof GOURD_DEFINITIONS === 'undefined') {
@@ -808,6 +966,7 @@ function renderInventory() {
         }
         renderGourds();
         renderOrbBeacons();
+        renderTiles();
       });
 
       listEl.appendChild(row);
@@ -825,6 +984,7 @@ function renderUI() {
   renderOrbBeacons();
   renderLightFixtures();
   renderSigns();
+  renderTiles();
   renderGourds();
   renderCharacterColors();
   renderInventory();
@@ -943,6 +1103,40 @@ if (btnClearAllSigns) {
   };
 }
 
+// Bulk Tile Operations
+if (btnAllTilesNotFound) {
+  btnAllTilesNotFound.onclick = () => {
+    if (!savePayload || typeof TILE_DEFINITIONS === 'undefined') return;
+    TILE_DEFINITIONS.forEach(tile => {
+      const entry = savePayload.entries.find(e => e && e.key === tile.item_id);
+      if (entry) {
+        entry.value = 0;
+      }
+      savePayload.inventory = savePayload.inventory.filter(id => id !== tile.item_id);
+    });
+    renderInventory();
+    renderTiles();
+  };
+}
+
+if (btnAllTilesInventory) {
+  btnAllTilesInventory.onclick = () => {
+    if (!savePayload || typeof TILE_DEFINITIONS === 'undefined') return;
+    if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
+    TILE_DEFINITIONS.forEach(tile => {
+      const entry = savePayload.entries.find(e => e && e.key === tile.item_id);
+      if (entry) {
+        entry.value = 0;
+      }
+      if (!savePayload.inventory.includes(tile.item_id)) {
+        savePayload.inventory.push(tile.item_id);
+      }
+    });
+    renderInventory();
+    renderTiles();
+  };
+}
+
 function setAllGourdsBulk(targetMode) {
   if (typeof GOURD_DEFINITIONS === 'undefined' || typeof GOURD_SLOTS === 'undefined') return;
   if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
@@ -1032,6 +1226,7 @@ if (btnClearAllInventory) {
     renderInventory();
     renderGourds();
     renderOrbBeacons();
+    renderTiles();
   };
 }
 
@@ -1047,12 +1242,29 @@ if (btnSelectAllInventory) {
     renderInventory();
     renderGourds();
     renderOrbBeacons();
+    renderTiles();
   };
 }
 
 // Export Modified Save
 if (exportBtn) {
   exportBtn.onclick = () => {
+    // Strip out unplaced tile entries (value 0 or not assigned to a slot)
+    if (Array.isArray(savePayload?.entries) && typeof TILE_DEFINITIONS !== 'undefined') {
+      const tileIds = new Set(TILE_DEFINITIONS.map(t => t.item_id));
+      const validSlotValues = new Set(
+        typeof TILE_SLOTS !== 'undefined'
+          ? TILE_SLOTS.map(s => Number(s.value))
+          : [410, 411, 412, 413]
+      );
+
+      savePayload.entries = savePayload.entries.filter(entry => {
+        if (!entry || !tileIds.has(entry.key)) return true;
+        // Keep only if the tile is placed in an active slot
+        return validSlotValues.has(Number(entry.value));
+      });
+    }
+
     const dataStr = JSON.stringify(savePayload, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
