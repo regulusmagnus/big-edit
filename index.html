@@ -151,10 +151,63 @@
 
     </div>
   </div>
+
+<!-- Route Visualizer (Independent from Save Editor) -->
+  <div id="mapSection" class="map-card hidden">
+    <div class="action-header">
+      <h2>Route Visualizer</h2>
+    </div>
+
+    <div class="map-toolbar">
+      <button id="btnGenerateMap" class="btn">🗺️ Generate Route Map</button>
+      
+      <div class="map-toolbar-group">
+        <button id="btnZoomIn" class="btn-sm" title="Zoom In">➕ Zoom In</button>
+        <button id="btnZoomOut" class="btn-sm" title="Zoom Out">➖ Zoom Out</button>
+        <button id="btnFitMap" class="btn-sm" title="Reset View">🎯 Fit to View</button>
+      </div>
+
+      <div class="map-toolbar-group" style="margin-left: auto;">
+        <button id="btnExportSvg" class="btn-sm">💾 Export SVG</button>
+        <button id="btnExportPng" class="btn-sm">🖼️ Export PNG</button>
+      </div>
+    </div>
+
+    <div class="map-container">
+      <svg id="mapSvg" class="map-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Schematic Background Grid -->
+          <pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#222228" stroke-width="1"/>
+          </pattern>
+
+          <!-- Directional Arrow Marker -->
+          <marker id="mapArrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981"/>
+          </marker>
+        </defs>
+
+        <!-- Background grid rectangle -->
+        <rect width="100%" height="100%" fill="url(#mapGrid)" />
+
+        <!-- Transformable Root Viewport -->
+        <g id="mapViewport"></g>
+      </svg>
+
+      <!-- Floating Node Tooltip -->
+      <div id="mapTooltip" class="map-tooltip hidden"></div>
+
+      <!-- Status Overlay -->
+      <div id="mapStatus" class="map-status-overlay">Click "Generate Route Map" to render points</div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Load Database Definitions and Main Controller Logic -->
+<!-- Scripts -->
 <script src="database.js"></script>
+<script src="coordinates.js"></script>
 <script src="app.js"></script>
+<script src="map.js"></script>
 </body>
 </html>
