@@ -159,8 +159,6 @@
     </div>
 
     <div class="map-toolbar">
-      <button id="btnGenerateMap" class="btn">🗺️ Generate Route Map</button>
-      
       <div class="map-toolbar-group">
         <button id="btnZoomIn" class="btn-sm" title="Zoom In">➕ Zoom In</button>
         <button id="btnZoomOut" class="btn-sm" title="Zoom Out">➖ Zoom Out</button>
@@ -170,6 +168,16 @@
       <div class="map-toolbar-group" style="margin-left: auto;">
         <button id="btnExportSvg" class="btn-sm">💾 Export SVG</button>
         <button id="btnExportPng" class="btn-sm">🖼️ Export PNG</button>
+      </div>
+    </div>
+
+    <!-- Dynamic Type Filters -->
+    <div class="map-filters-row">
+      <span class="map-filter-label">Filter Types:</span>
+      <div id="mapFilterPills" class="map-filter-pills"></div>
+      <div class="map-toolbar-group" style="margin-left: auto;">
+        <button type="button" class="btn-sm" id="btnFilterAll">All</button>
+        <button type="button" class="btn-sm" id="btnFilterNone">None</button>
       </div>
     </div>
 
@@ -198,7 +206,7 @@
       <div id="mapTooltip" class="map-tooltip hidden"></div>
 
       <!-- Status Overlay -->
-      <div id="mapStatus" class="map-status-overlay">Click "Generate Route Map" to render points</div>
+      <div id="mapStatus" class="map-status-overlay">Select filters above to display route points</div>
     </div>
   </div>
 

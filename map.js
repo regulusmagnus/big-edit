@@ -4,18 +4,21 @@
   let isDragging = false;
   let dragStart = { x: 0, y: 0 };
   let currentPathPoints = [];
+  const enabledTypes = new Set(); // Starts empty (all deselected)
 
   // DOM Elements
   const mapSvg = document.getElementById("mapSvg");
   const mapViewport = document.getElementById("mapViewport");
   const mapTooltip = document.getElementById("mapTooltip");
   const mapStatus = document.getElementById("mapStatus");
-  const btnGenerateMap = document.getElementById("btnGenerateMap");
+  const mapFilterPills = document.getElementById("mapFilterPills");
   const btnZoomIn = document.getElementById("btnZoomIn");
   const btnZoomOut = document.getElementById("btnZoomOut");
   const btnFitMap = document.getElementById("btnFitMap");
   const btnExportSvg = document.getElementById("btnExportSvg");
   const btnExportPng = document.getElementById("btnExportPng");
+  const btnFilterAll = document.getElementById("btnFilterAll");
+  const btnFilterNone = document.getElementById("btnFilterNone");
 
   function updateTransform() {
     if (mapViewport) {
@@ -23,46 +26,123 @@
     }
   }
 
-  // Generate Map directly from the unmodified uploaded save file
-  function generateMap() {
-    if (!window.rawSavePayload || !Array.isArray(window.rawSavePayload.entries)) {
-      alert("Please load a save file in the uploader above first.");
-      return;
-    }
+  // Populate dynamic type filter pills (initially all unchecked)
+  function initializeFilters() {
+    if (!mapFilterPills || typeof COORDINATES_DATABASE === "undefined") return;
 
-    if (typeof COORDINATES_DATABASE === "undefined" || !Array.isArray(COORDINATES_DATABASE)) {
-      alert("COORDINATES_DATABASE not found in coordinates.js.");
-      return;
-    }
-
-    // Build O(1) coordinate lookup
-    const coordLookup = new Map(COORDINATES_DATABASE.map(item => [item.key, item]));
-    currentPathPoints = [];
-
-    // Filter and collect entries strictly in chronological order
-    window.rawSavePayload.entries.forEach(entry => {
-      if (entry && entry.key && coordLookup.has(entry.key)) {
-        const meta = coordLookup.get(entry.key);
-        currentPathPoints.push({
-          key: entry.key,
-          x: Number(meta.x),
-          y: Number(meta.y),
-          type: meta.type || "Default",
-          label: meta.label || entry.key,
-          value: entry.value,
-          order: currentPathPoints.length + 1
-        });
-      }
+    mapFilterPills.innerHTML = "";
+    const types = new Set();
+    COORDINATES_DATABASE.forEach(c => {
+      if (c.type) types.add(c.type);
     });
 
-    if (currentPathPoints.length === 0) {
-      mapStatus.textContent = "No entries in this save file matched any coordinates.";
+    types.forEach(type => {
+      const typeCfg = (typeof MAP_TYPE_CONFIG !== "undefined" && MAP_TYPE_CONFIG[type])
+        ? MAP_TYPE_CONFIG[type]
+        : { color: "#10b981" };
+
+      const pill = document.createElement("label");
+      pill.className = "filter-pill";
+      pill.innerHTML = `
+        <input type="checkbox" value="${type}">
+        <span class="filter-pill-dot" style="background-color: ${typeCfg.color};"></span>
+        <span>${type}</span>
+      `;
+
+      pill.querySelector("input").addEventListener("change", (e) => {
+        if (e.target.checked) {
+          enabledTypes.add(type);
+        } else {
+          enabledTypes.delete(type);
+        }
+        generateMap();
+      });
+
+      mapFilterPills.appendChild(pill);
+    });
+  }
+
+  // Filter Bulk Actions
+  if (btnFilterAll) {
+    btnFilterAll.onclick = () => {
+      mapFilterPills.querySelectorAll("input[type='checkbox']").forEach(cb => {
+        cb.checked = true;
+        enabledTypes.add(cb.value);
+      });
+      generateMap();
+    };
+  }
+
+  if (btnFilterNone) {
+    btnFilterNone.onclick = () => {
+      mapFilterPills.querySelectorAll("input[type='checkbox']").forEach(cb => {
+        cb.checked = false;
+        enabledTypes.delete(cb.value);
+      });
+      generateMap();
+    };
+  }
+
+  // Reactive Map Generation
+  function generateMap() {
+    if (!window.rawSavePayload || !Array.isArray(window.rawSavePayload.entries)) {
+      mapStatus.textContent = "Upload a save file to view route";
       mapStatus.classList.remove("hidden");
+      mapStatus.style.display = "flex";
       mapViewport.innerHTML = "";
       return;
     }
 
+    if (enabledTypes.size === 0) {
+      mapStatus.textContent = "Select filters above to display route points";
+      mapStatus.classList.remove("hidden");
+      mapStatus.style.display = "flex";
+      mapViewport.innerHTML = "";
+      return;
+    }
+
+    if (typeof COORDINATES_DATABASE === "undefined" || !Array.isArray(COORDINATES_DATABASE)) {
+      mapStatus.textContent = "COORDINATES_DATABASE missing";
+      mapStatus.classList.remove("hidden");
+      mapStatus.style.display = "flex";
+      return;
+    }
+
+    const coordLookup = new Map(COORDINATES_DATABASE.map(item => [item.key, item]));
+    currentPathPoints = [];
+
+    // Filter entries chronologically matching enabled types
+    window.rawSavePayload.entries.forEach(entry => {
+      if (entry && entry.key && coordLookup.has(entry.key)) {
+        const meta = coordLookup.get(entry.key);
+        const itemType = meta.type || "Default";
+
+        if (enabledTypes.has(itemType)) {
+          currentPathPoints.push({
+            key: entry.key,
+            x: Number(meta.x),
+            y: Number(meta.y),
+            type: itemType,
+            label: meta.label || entry.key,
+            value: entry.value,
+            order: currentPathPoints.length + 1
+          });
+        }
+      }
+    });
+
+    if (currentPathPoints.length === 0) {
+      mapStatus.textContent = "No entries matched the selected filters.";
+      mapStatus.classList.remove("hidden");
+      mapStatus.style.display = "flex";
+      mapViewport.innerHTML = "";
+      return;
+    }
+
+    // Hide status overlay
     mapStatus.classList.add("hidden");
+    mapStatus.style.display = "none";
+
     renderPath(currentPathPoints);
     fitToViewport(currentPathPoints);
   }
@@ -70,17 +150,15 @@
   function renderPath(points) {
     mapViewport.innerHTML = "";
 
-    // Group for connecting line segments and arrows
     const linesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     linesGroup.setAttribute("id", "mapTrailLines");
 
-    // Group for markers and labels
     const nodesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     nodesGroup.setAttribute("id", "mapTrailNodes");
 
     const markerRadius = 8;
 
-    // 1. Draw connecting arrows between sequential points
+    // Draw connecting arrows between sequential points
     for (let i = 0; i < points.length - 1; i++) {
       const p1 = points[i];
       const p2 = points[i + 1];
@@ -90,7 +168,6 @@
       const dist = Math.hypot(dx, dy);
 
       if (dist > markerRadius * 2) {
-        // Offset arrow endpoints slightly so arrowheads touch the marker edges cleanly
         const offsetStart = markerRadius + 2;
         const offsetEnd = markerRadius + 6;
 
@@ -112,7 +189,7 @@
       }
     }
 
-    // 2. Draw nodes, order badges, and type tags
+    // Draw nodes, order badges, and type tags
     points.forEach((pt) => {
       const typeCfg = (typeof MAP_TYPE_CONFIG !== "undefined" && MAP_TYPE_CONFIG[pt.type])
         ? MAP_TYPE_CONFIG[pt.type]
@@ -122,7 +199,6 @@
       node.setAttribute("class", "map-node");
       node.setAttribute("data-order", pt.order);
 
-      // Node base circle
       const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("cx", pt.x);
       circle.setAttribute("cy", pt.y);
@@ -131,7 +207,6 @@
       circle.setAttribute("stroke", "#ffffff");
       circle.setAttribute("stroke-width", "2");
 
-      // Number badge inside marker
       const orderText = document.createElementNS("http://www.w3.org/2000/svg", "text");
       orderText.setAttribute("x", pt.x);
       orderText.setAttribute("y", pt.y + 3);
@@ -141,7 +216,6 @@
       orderText.setAttribute("fill", "#000000");
       orderText.textContent = pt.order;
 
-      // Small type badge pill next to marker
       const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
       labelText.setAttribute("x", pt.x + markerRadius + 4);
       labelText.setAttribute("y", pt.y + 3.5);
@@ -155,7 +229,6 @@
       node.appendChild(orderText);
       node.appendChild(labelText);
 
-      // Interactive hover tooltip
       node.addEventListener("mouseenter", (e) => {
         circle.setAttribute("r", markerRadius + 3);
         mapTooltip.innerHTML = `
@@ -165,6 +238,7 @@
           <span style="color: var(--text-muted); font-size: 0.75rem;">Key: ${pt.key}</span>
         `;
         mapTooltip.classList.remove("hidden");
+        mapTooltip.style.display = "block";
       });
 
       node.addEventListener("mousemove", (e) => {
@@ -176,6 +250,7 @@
       node.addEventListener("mouseleave", () => {
         circle.setAttribute("r", markerRadius);
         mapTooltip.classList.add("hidden");
+        mapTooltip.style.display = "none";
       });
 
       nodesGroup.appendChild(node);
@@ -185,7 +260,6 @@
     mapViewport.appendChild(nodesGroup);
   }
 
-  // Calculate bounding box and fit to view
   function fitToViewport(points) {
     if (!points || points.length === 0) return;
 
@@ -213,9 +287,9 @@
     updateTransform();
   }
 
-  // Mouse Drag & Pan Handlers
+  // Pan & Drag Handlers
   mapSvg.addEventListener("mousedown", (e) => {
-    if (e.button !== 0) return; // Left click only
+    if (e.button !== 0) return;
     isDragging = true;
     dragStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
     mapSvg.style.cursor = "grabbing";
@@ -252,7 +326,6 @@
     updateTransform();
   }, { passive: false });
 
-  // Zoom Toolbar Buttons
   btnZoomIn.onclick = () => {
     const rect = mapSvg.getBoundingClientRect();
     const cx = rect.width / 2;
@@ -279,10 +352,9 @@
     if (currentPathPoints.length > 0) fitToViewport(currentPathPoints);
   };
 
-  // Export Standalone SVG
   btnExportSvg.onclick = () => {
     if (currentPathPoints.length === 0) {
-      alert("Please generate a map first.");
+      alert("No route points to export. Please select filters first.");
       return;
     }
     const svgClone = mapSvg.cloneNode(true);
@@ -297,10 +369,9 @@
     URL.revokeObjectURL(url);
   };
 
-  // Export PNG via Canvas
   btnExportPng.onclick = () => {
     if (currentPathPoints.length === 0) {
-      alert("Please generate a map first.");
+      alert("No route points to export. Please select filters first.");
       return;
     }
     const svgRect = mapSvg.getBoundingClientRect();
@@ -313,7 +384,7 @@
     const image = new Image();
     image.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = svgRect.width * 2; // 2x resolution for sharpness
+      canvas.width = svgRect.width * 2;
       canvas.height = svgRect.height * 2;
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = "#141417";
@@ -331,5 +402,9 @@
     image.src = blobURL;
   };
 
-  btnGenerateMap.onclick = generateMap;
+  // Listen for file upload from app.js
+  window.addEventListener("saveFileLoaded", generateMap);
+
+  // Initialize filters on script load
+  initializeFilters();
 })();

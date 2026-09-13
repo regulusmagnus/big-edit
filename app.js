@@ -233,7 +233,6 @@ function loadFile(file) {
   reader.onload = (e) => {
     try {
       savePayload = JSON.parse(e.target.result);
-      // Preserve original unedited entries order for the map
       window.rawSavePayload = JSON.parse(e.target.result);
 
       if (!Array.isArray(savePayload.entries)) savePayload.entries = [];
@@ -242,7 +241,11 @@ function loadFile(file) {
       renderUI();
       dropZone.classList.add('hidden');
       editorContent.classList.remove('hidden');
-      document.getElementById('mapSection').classList.remove('hidden');
+
+      // Unhide Map section and notify map.js
+      const mapSection = document.getElementById('mapSection');
+      if (mapSection) mapSection.classList.remove('hidden');
+      window.dispatchEvent(new CustomEvent('saveFileLoaded'));
     } catch (err) {
       alert("Could not parse file. Please upload a valid Big Walk save file.");
     }
