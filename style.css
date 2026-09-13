@@ -524,12 +524,8 @@ input:checked + .slider:before { transform: translateX(20px); }
 /* -------------------------------------------------------------
    Route Visualizer / Map Section Styles
 ------------------------------------------------------------- */
-.map-card {
+#mapSection {
   margin-top: 2rem;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
 }
 
 .map-toolbar {
