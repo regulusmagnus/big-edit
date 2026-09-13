@@ -4,6 +4,7 @@
   let isDragging = false;
   let dragStart = { x: 0, y: 0 };
   let currentPathPoints = [];
+  let currentGourdPlacements = [];
   const enabledTypes = new Set(); // Starts empty (all deselected)
 
   // DOM Elements
@@ -12,6 +13,7 @@
   const mapTooltip = document.getElementById("mapTooltip");
   const mapStatus = document.getElementById("mapStatus");
   const mapFilterPills = document.getElementById("mapFilterPills");
+  const chkShowGourdPlacements = document.getElementById("chkShowGourdPlacements");
   const btnZoomIn = document.getElementById("btnZoomIn");
   const btnZoomOut = document.getElementById("btnZoomOut");
   const btnFitMap = document.getElementById("btnFitMap");
@@ -26,7 +28,7 @@
     }
   }
 
-  // Populate dynamic type filter pills (initially all unchecked)
+  // Populate dynamic type filter pills (initially unchecked)
   function initializeFilters() {
     if (!mapFilterPills || typeof COORDINATES_DATABASE === "undefined") return;
 
@@ -62,6 +64,10 @@
     });
   }
 
+  if (chkShowGourdPlacements) {
+    chkShowGourdPlacements.addEventListener("change", generateMap);
+  }
+
   // Filter Bulk Actions
   if (btnFilterAll) {
     btnFilterAll.onclick = () => {
@@ -93,7 +99,9 @@
       return;
     }
 
-    if (enabledTypes.size === 0) {
+    const showPlacements = chkShowGourdPlacements && chkShowGourdPlacements.checked;
+
+    if (enabledTypes.size === 0 && !showPlacements) {
       mapStatus.textContent = "Select filters above to display route points";
       mapStatus.classList.remove("hidden");
       mapStatus.style.display = "flex";
@@ -110,8 +118,9 @@
 
     const coordLookup = new Map(COORDINATES_DATABASE.map(item => [item.key, item]));
     currentPathPoints = [];
+    currentGourdPlacements = [];
 
-    // Filter entries chronologically matching enabled types
+    // 1. Process Sequential Route Points
     window.rawSavePayload.entries.forEach(entry => {
       if (entry && entry.key && coordLookup.has(entry.key)) {
         const meta = coordLookup.get(entry.key);
@@ -131,7 +140,31 @@
       }
     });
 
-    if (currentPathPoints.length === 0) {
+    // 2. Process Gourd Placement Lines
+    if (showPlacements && typeof getGourdSlotLocation === "function") {
+      window.rawSavePayload.entries.forEach(entry => {
+        if (!entry || !entry.key) return;
+        const meta = coordLookup.get(entry.key);
+        // Only inspect items registered as Gourds
+        if (meta && meta.type === "Gourd") {
+          const pedestal = getGourdSlotLocation(entry.value);
+          if (pedestal) {
+            currentGourdPlacements.push({
+              gourdKey: entry.key,
+              gourdLabel: meta.label || entry.key,
+              originX: Number(meta.x),
+              originY: Number(meta.y),
+              targetX: Number(pedestal.x),
+              targetY: Number(pedestal.y),
+              pedestalName: pedestal.area,
+              slotValue: entry.value
+            });
+          }
+        }
+      });
+    }
+
+    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0) {
       mapStatus.textContent = "No entries matched the selected filters.";
       mapStatus.classList.remove("hidden");
       mapStatus.style.display = "flex";
@@ -143,22 +176,113 @@
     mapStatus.classList.add("hidden");
     mapStatus.style.display = "none";
 
-    renderPath(currentPathPoints);
-    fitToViewport(currentPathPoints);
+    renderMap(currentPathPoints, currentGourdPlacements);
+    fitToViewport(currentPathPoints, currentGourdPlacements);
   }
 
-  function renderPath(points) {
+  function renderMap(points, placements) {
     mapViewport.innerHTML = "";
-
-    const linesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    linesGroup.setAttribute("id", "mapTrailLines");
-
-    const nodesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    nodesGroup.setAttribute("id", "mapTrailNodes");
 
     const markerRadius = 8;
 
-    // Draw connecting arrows between sequential points
+    // --- Layer 1: Gourd Placement Lines (Orange, Dense Dots) ---
+    if (placements.length > 0) {
+      const placementsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      placementsGroup.setAttribute("id", "mapGourdPlacements");
+
+      placements.forEach(plc => {
+        const dx = plc.targetX - plc.originX;
+        const dy = plc.targetY - plc.originY;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > markerRadius * 2) {
+          const offsetStart = markerRadius + 2;
+          const offsetEnd = markerRadius + 6;
+
+          const x1 = plc.originX + (dx / dist) * offsetStart;
+          const y1 = plc.originY + (dy / dist) * offsetStart;
+          const x2 = plc.targetX - (dx / dist) * offsetEnd;
+          const y2 = plc.targetY - (dy / dist) * offsetEnd;
+
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", x1);
+          line.setAttribute("y1", y1);
+          line.setAttribute("x2", x2);
+          line.setAttribute("y2", y2);
+          line.setAttribute("stroke", "#f97316"); // Vibrant Orange
+          line.setAttribute("stroke-width", "2");
+          line.setAttribute("stroke-dasharray", "2 3"); // Fine dotted line
+          line.setAttribute("marker-end", "url(#mapArrowheadGourd)");
+          line.style.cursor = "pointer";
+
+          line.addEventListener("mouseenter", () => {
+            line.setAttribute("stroke-width", "3.5");
+            mapTooltip.innerHTML = `
+              <strong style="color: #f97316;">📦 Gourd Placement</strong><br>
+              ${plc.gourdLabel}<br>
+              <span style="color: var(--text-muted);">Placed at:</span> ${plc.pedestalName} (Slot ${plc.slotValue})
+            `;
+            mapTooltip.classList.remove("hidden");
+            mapTooltip.style.display = "block";
+          });
+
+          line.addEventListener("mousemove", (e) => {
+            const rect = mapSvg.getBoundingClientRect();
+            mapTooltip.style.left = `${e.clientX - rect.left + 14}px`;
+            mapTooltip.style.top = `${e.clientY - rect.top + 14}px`;
+          });
+
+          line.addEventListener("mouseleave", () => {
+            line.setAttribute("stroke-width", "2");
+            mapTooltip.classList.add("hidden");
+            mapTooltip.style.display = "none";
+          });
+
+          placementsGroup.appendChild(line);
+        }
+
+        // Draw small pedestal marker at destination
+        const destCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        destCircle.setAttribute("cx", plc.targetX);
+        destCircle.setAttribute("cy", plc.targetY);
+        destCircle.setAttribute("r", 6);
+        destCircle.setAttribute("fill", "#f97316");
+        destCircle.setAttribute("stroke", "#ffffff");
+        destCircle.setAttribute("stroke-width", "1.5");
+        destCircle.style.cursor = "pointer";
+
+        destCircle.addEventListener("mouseenter", () => {
+          destCircle.setAttribute("r", 9);
+          mapTooltip.innerHTML = `
+            <strong style="color: #f97316;">Pedestal: ${plc.pedestalName}</strong><br>
+            Holds: ${plc.gourdLabel} (Slot ${plc.slotValue})
+          `;
+          mapTooltip.classList.remove("hidden");
+          mapTooltip.style.display = "block";
+        });
+
+        destCircle.addEventListener("mousemove", (e) => {
+          const rect = mapSvg.getBoundingClientRect();
+          mapTooltip.style.left = `${e.clientX - rect.left + 14}px`;
+          mapTooltip.style.top = `${e.clientY - rect.top + 14}px`;
+        });
+
+        destCircle.addEventListener("mouseleave", () => {
+          destCircle.setAttribute("r", 6);
+          mapTooltip.classList.add("hidden");
+          mapTooltip.style.display = "none";
+        });
+
+        placementsGroup.appendChild(destCircle);
+      });
+
+      mapViewport.appendChild(placementsGroup);
+    }
+
+    // --- Layer 2: Sequential Route Arrows (Emerald Green, Dashed) ---
+    const linesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    linesGroup.setAttribute("id", "mapTrailLines");
+
     for (let i = 0; i < points.length - 1; i++) {
       const p1 = points[i];
       const p2 = points[i + 1];
@@ -188,8 +312,12 @@
         linesGroup.appendChild(line);
       }
     }
+    mapViewport.appendChild(linesGroup);
 
-    // Draw nodes, order badges, and type tags
+    // --- Layer 3: Sequential Route Nodes ---
+    const nodesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    nodesGroup.setAttribute("id", "mapTrailNodes");
+
     points.forEach((pt) => {
       const typeCfg = (typeof MAP_TYPE_CONFIG !== "undefined" && MAP_TYPE_CONFIG[pt.type])
         ? MAP_TYPE_CONFIG[pt.type]
@@ -229,7 +357,7 @@
       node.appendChild(orderText);
       node.appendChild(labelText);
 
-      node.addEventListener("mouseenter", (e) => {
+      node.addEventListener("mouseenter", () => {
         circle.setAttribute("r", markerRadius + 3);
         mapTooltip.innerHTML = `
           <strong>#${pt.order}: ${pt.label}</strong><br>
@@ -256,15 +384,22 @@
       nodesGroup.appendChild(node);
     });
 
-    mapViewport.appendChild(linesGroup);
     mapViewport.appendChild(nodesGroup);
   }
 
-  function fitToViewport(points) {
-    if (!points || points.length === 0) return;
+  // Calculate bounding box across both active route waypoints and gourd placement targets
+  function fitToViewport(points, placements) {
+    const allCoords = [];
+    points.forEach(p => allCoords.push({ x: p.x, y: p.y }));
+    placements.forEach(plc => {
+      allCoords.push({ x: plc.originX, y: plc.originY });
+      allCoords.push({ x: plc.targetX, y: plc.targetY });
+    });
+
+    if (allCoords.length === 0) return;
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    points.forEach(p => {
+    allCoords.forEach(p => {
       if (p.x < minX) minX = p.x;
       if (p.x > maxX) maxX = p.x;
       if (p.y < minY) minY = p.y;
@@ -349,11 +484,13 @@
   };
 
   btnFitMap.onclick = () => {
-    if (currentPathPoints.length > 0) fitToViewport(currentPathPoints);
+    if (currentPathPoints.length > 0 || currentGourdPlacements.length > 0) {
+      fitToViewport(currentPathPoints, currentGourdPlacements);
+    }
   };
 
   btnExportSvg.onclick = () => {
-    if (currentPathPoints.length === 0) {
+    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0) {
       alert("No route points to export. Please select filters first.");
       return;
     }
@@ -370,7 +507,7 @@
   };
 
   btnExportPng.onclick = () => {
-    if (currentPathPoints.length === 0) {
+    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0) {
       alert("No route points to export. Please select filters first.");
       return;
     }
@@ -402,9 +539,6 @@
     image.src = blobURL;
   };
 
-  // Listen for file upload from app.js
   window.addEventListener("saveFileLoaded", generateMap);
-
-  // Initialize filters on script load
   initializeFilters();
 })();

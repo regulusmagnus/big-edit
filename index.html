@@ -171,13 +171,22 @@
         </div>
       </div>
 
-      <!-- Dynamic Type Filters -->
+      <!-- Dynamic Type Filters & Gourd Placements Toggle -->
       <div class="map-filters-row">
         <span class="map-filter-label">Filter Types:</span>
         <div id="mapFilterPills" class="map-filter-pills"></div>
-        <div class="map-toolbar-group" style="margin-left: auto;">
+        <div class="map-toolbar-group">
           <button type="button" class="btn-sm" id="btnFilterAll">All</button>
           <button type="button" class="btn-sm" id="btnFilterNone">None</button>
+        </div>
+
+        <!-- Distinct Gourd Placements Toggle -->
+        <div class="map-toolbar-group" style="border-left: 1px solid var(--card-border); padding-left: 0.6rem; margin-left: 0.4rem;">
+          <label class="filter-pill" style="border-color: #f97316;">
+            <input type="checkbox" id="chkShowGourdPlacements">
+            <span class="filter-pill-dot" style="background-color: #f97316;"></span>
+            <span style="font-weight: 600;">Gourd Placements</span>
+          </label>
         </div>
       </div>
 
@@ -189,9 +198,14 @@
               <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#222228" stroke-width="1"/>
             </pattern>
 
-            <!-- Directional Arrow Marker -->
+            <!-- Standard Route Arrowhead (Emerald) -->
             <marker id="mapArrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981"/>
+            </marker>
+
+            <!-- Gourd Placement Arrowhead (Orange) -->
+            <marker id="mapArrowheadGourd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f97316"/>
             </marker>
           </defs>
 

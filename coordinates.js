@@ -8,6 +8,21 @@ const MAP_TYPE_CONFIG = {
   "Default": { color: "#9ca3af", badge: "POINT" }
 };
 
+const GOURD_SLOT_LOCATIONS = [
+  { min: 100, max: 104, area: "Red Tower", x: 1407, y: 3665 },
+  { min: 110, max: 114, area: "Green Tower", x: 1902, y: 3937 },
+  { min: 120, max: 124, area: "Blue Tower", x: 1858, y: 3539 },
+  { min: 130, max: 134, area: "Yellow Tower", x: 1565, y: 3307 },
+  { min: 140, max: 145, area: "Black Tower", x: 1676, y: 3480 },
+  { min: 150, max: 154, area: "Intro Valley", x: 1131, y: 3535 },
+  { min: 160, max: 174, area: "Endgame Hub", x: 1494, y: 3526 },
+];
+
+function getGourdSlotLocation(slotValue) {
+  const val = Number(slotValue);
+  return GOURD_SLOT_LOCATIONS.find(loc => val >= loc.min && val <= loc.max) || null;
+}
+
 const COORDINATES_DATABASE = [
   { key: "SpawnHubGate", y: 3537, x: 1387, type: "Gate", label: "temp"},
   { key: "HubShortcutToSportsCreek", y: 3595, x: 1445, type: "Gate", label: "temp"},
@@ -27,11 +42,11 @@ const COORDINATES_DATABASE = [
   { key: "GauntletChamber5", y: 2290, x: 1862, type: "Door", label: "temp"},
   { key: "GauntletChamber6", y: 2290, x: 1862, type: "Door", label: "temp"},
   { key: "GauntletComplete", y: 2290, x: 1862, type: "Door", label: "temp"},
-  { key: "LookoutLightRed", y: 3674, x: 1402, type: "Door", label: "temp"},
-  { key: "LookoutLightBlue", y: 3544, x: 1848, type: "Door", label: "temp"},
-  { key: "LookoutLightGreen", y: 3938, x: 1913, type: "Door", label: "temp"},
-  { key: "LookoutLightYellow", y: 3305, x: 1576, type: "Door", label: "temp"},
-  { key: "BlackTowerInteriorDoor", y: 3481, x: 1678, type: "Door", label: "temp"},
+  { key: "LookoutLightRed", y: 3674, x: 1402, type: "Tower", label: "temp"},
+  { key: "LookoutLightBlue", y: 3544, x: 1848, type: "Tower", label: "temp"},
+  { key: "LookoutLightGreen", y: 3938, x: 1913, type: "Tower", label: "temp"},
+  { key: "LookoutLightYellow", y: 3305, x: 1576, type: "Tower", label: "temp"},
+  { key: "BlackTowerInteriorDoor", y: 3481, x: 1678, type: "Tower", label: "temp"},
   { key: "FmStationBreathwork", y: 3705, x: 1185, type: "Radio", label: "temp"},
   { key: "FmStationSleuthFm", y: 4267, x: 2012, type: "Radio", label: "temp"},
   { key: "FmStationFourthSpace", y: 3825, x: 1661, type: "Radio", label: "temp"},
