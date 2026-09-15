@@ -23,13 +23,15 @@ Note: House House states that there is not canon terminology for the various thi
 - Enable/disable static light fixtures
 - Edit in-game sign text
 - Add puzzle tiles to inventory/Lost & Found toggles, or place them at Tile Thief
+- A save file analyzer that plots the order you encountered various things and shows where you placed your gourds
 
 ## To Do
 
-- Add a map, like Breath of the Wild's *Hero's Path*, that plots the order in which things were accessed (lights first toggled, puzzles solved, keys placed)
+- All done! Just big fixes and minor tweaks when needed.
+- Open to suggestions!
 
 ### Fun Facts
 
 - All new save files start with two light fixtures turned on. One is at the paint station in the intro valley. If you have all in-game achievements you might be able to guess the other!
-- All save files have a world seed value. I have no idea what this is used for!
+- All save files have a world seed value. The tiles required by Tile Thief and Optical Telegraph are determined solely by this value.
 - The empty beacon pedestals create an entry in the save file if you first place an orb there, then remove it, however this has no actual effect (i.e. reloading the game will return whichever orb you placed there back to its spawn)
