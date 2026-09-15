@@ -422,6 +422,8 @@ const ORB_BEACON_DATABASE = [
     link: "https://wand.com/maps/big-walk/island-big-walk?location=LN0nosh5NF"},
   {coordinate_1: 3689, coordinate_2: 1752, light_id: "5842c5fd-bc0f-46b7-b11e-bd7f8faec223", orb_id: "b2f9b7af-39f5-431c-9908-c2ebf6d6453b",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=fZDgErUa3r"},
+  {coordinate_1: 3697, coordinate_2: 1539, light_id: "074462e1-81c5-41a9-8d65-d381c51d775a", orb_id: "5d10fec3-7a2d-4bfd-be0e-6196152d88f5",
+    link: ""},
   {coordinate_1: 3698, coordinate_2: 1698, light_id: "c82559c7-8484-4e80-b061-cf7ea581f8bd", orb_id: "12a7f64b-8175-4857-a371-77dc2989cd68",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=RFXLhzLZ86"},
   {coordinate_1: 3705, coordinate_2: 2189, light_id: "937b4bc8-b0aa-4b4d-b037-e2498c434784", orb_id: "087f1e73-309b-4db2-8e39-dee6c926ad59",
