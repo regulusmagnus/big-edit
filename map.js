@@ -14,12 +14,36 @@
   const MAX_SCREEN_RADIUS = 12; // Maximum on-screen pixel size
   let lastScale = null;
 
+  // Background Map Image Preloader & Base64 Cache
+  const bgImage = new Image();
+  let bgImageBase64 = null;
+
+  function preloadBackgroundImage() {
+    if (typeof MAP_IMAGE_CONFIG === "undefined" || !MAP_IMAGE_CONFIG.url) return;
+    bgImage.crossOrigin = "anonymous";
+    bgImage.onload = () => {
+      try {
+        const c = document.createElement("canvas");
+        c.width = bgImage.naturalWidth;
+        c.height = bgImage.naturalHeight;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(bgImage, 0, 0);
+        bgImageBase64 = c.toDataURL("image/jpeg", 0.9);
+      } catch (e) {
+        // Fallback for file:// origin limitations; direct canvas draw handles PNG
+      }
+    };
+    bgImage.src = MAP_IMAGE_CONFIG.url;
+  }
+  preloadBackgroundImage();
+
   // DOM Elements
   const mapSvg = document.getElementById("mapSvg");
   const mapViewport = document.getElementById("mapViewport");
   const mapTooltip = document.getElementById("mapTooltip");
   const mapStatus = document.getElementById("mapStatus");
   const mapFilterPills = document.getElementById("mapFilterPills");
+  const chkShowBackgroundMap = document.getElementById("chkShowBackgroundMap");
   const chkShowRouteArrows = document.getElementById("chkShowRouteArrows");
   const chkShowGourdPlacements = document.getElementById("chkShowGourdPlacements");
   const btnZoomIn = document.getElementById("btnZoomIn");
@@ -29,7 +53,6 @@
   const btnExportPng = document.getElementById("btnExportPng");
   const btnFilterAll = document.getElementById("btnFilterAll");
   const btnFilterNone = document.getElementById("btnFilterNone");
-  const chkShowBackgroundMap = document.getElementById("chkShowBackgroundMap");
 
   // Robust payload resolver that works whether app.js uses window.rawSavePayload or local savePayload
   function getSavePayload() {
@@ -216,8 +239,9 @@
 
     const showPlacements = chkShowGourdPlacements && chkShowGourdPlacements.checked;
     const showArrows = chkShowRouteArrows && chkShowRouteArrows.checked;
+    const showBackground = !chkShowBackgroundMap || chkShowBackgroundMap.checked;
 
-    if (enabledTypes.size === 0 && !showPlacements) {
+    if (enabledTypes.size === 0 && !showPlacements && !showBackground) {
       isMapBlank = true;
       mapStatus.textContent = "Select filters above to display route points";
       mapStatus.classList.remove("hidden");
@@ -292,7 +316,7 @@
       });
     }
 
-    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0) {
+    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0 && !showBackground) {
       isMapBlank = true;
       mapStatus.textContent = "No entries matched the selected filters.";
       mapStatus.classList.remove("hidden");
@@ -304,7 +328,7 @@
     mapStatus.classList.add("hidden");
     mapStatus.style.display = "none";
 
-    renderMap(currentPathPoints, currentGourdPlacements, showArrows);
+    renderMap(currentPathPoints, currentGourdPlacements, showArrows, showBackground);
 
     // Only auto-fit when the map is newly populated from a blank state
     if (isMapBlank) {
@@ -315,14 +339,14 @@
     }
   }
 
-  function renderMap(points, placements, showArrows) {
+  function renderMap(points, placements, showArrows, showBackground) {
     mapViewport.innerHTML = "";
     const s = getNodeScale();
 
     // --- Layer 0: Background Map Image ---
-    const showBackground = chkShowBackgroundMap ? chkShowBackgroundMap.checked : true;
     if (showBackground && typeof MAP_IMAGE_CONFIG !== "undefined" && MAP_IMAGE_CONFIG.url) {
       const bgImg = document.createElementNS("http://www.w3.org/2000/svg", "image");
+      bgImg.setAttribute("id", "mapBackgroundImage");
       bgImg.setAttribute("href", MAP_IMAGE_CONFIG.url);
       bgImg.setAttribute("x", MAP_IMAGE_CONFIG.x);
       bgImg.setAttribute("y", MAP_IMAGE_CONFIG.y);
@@ -391,7 +415,7 @@
           placementsGroup.appendChild(line);
         }
 
-        // Draw counter-scaled pedestal group at destination
+        // Draw pedestal group at destination
         const pedestalGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         pedestalGroup.setAttribute("class", "map-pedestal");
         pedestalGroup.setAttribute("data-x", plc.targetX);
@@ -559,6 +583,12 @@
       allCoords.push({ x: plc.targetX, y: plc.targetY });
     });
 
+    // If no features are selected but map image is enabled, fit to map image boundaries
+    if (allCoords.length === 0 && typeof MAP_IMAGE_CONFIG !== "undefined") {
+      allCoords.push({ x: MAP_IMAGE_CONFIG.x, y: MAP_IMAGE_CONFIG.y });
+      allCoords.push({ x: MAP_IMAGE_CONFIG.x + MAP_IMAGE_CONFIG.width, y: MAP_IMAGE_CONFIG.y + MAP_IMAGE_CONFIG.height });
+    }
+
     if (allCoords.length === 0) return;
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -652,17 +682,36 @@
   };
 
   btnFitMap.onclick = () => {
-    if (currentPathPoints.length > 0 || currentGourdPlacements.length > 0) {
-      fitToViewport(currentPathPoints, currentGourdPlacements);
-    }
+    fitToViewport(currentPathPoints, currentGourdPlacements);
   };
 
+  // Export Standalone SVG
   btnExportSvg.onclick = () => {
-    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0) {
-      alert("No route points to export. Please select filters first.");
+    const showBackground = !chkShowBackgroundMap || chkShowBackgroundMap.checked;
+    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0 && !showBackground) {
+      alert("No visible elements to export. Please select filters first.");
       return;
     }
+
+    const svgRect = mapSvg.getBoundingClientRect();
+    const viewW = Math.round(svgRect.width) || 800;
+    const viewH = Math.round(svgRect.height) || 550;
+
     const svgClone = mapSvg.cloneNode(true);
+    // Crucial: Set explicit dimensions so the exported SVG centers 1:1 with no dead space
+    svgClone.setAttribute("width", viewW);
+    svgClone.setAttribute("height", viewH);
+    svgClone.setAttribute("viewBox", `0 0 ${viewW} ${viewH}`);
+
+    const cloneBgImg = svgClone.querySelector("#mapBackgroundImage");
+    if (cloneBgImg) {
+      if (!showBackground) {
+        cloneBgImg.remove();
+      } else if (bgImageBase64) {
+        cloneBgImg.setAttribute("href", bgImageBase64);
+      }
+    }
+
     const serializer = new XMLSerializer();
     const svgString = serializer.serializeToString(svgClone);
     const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
@@ -674,26 +723,62 @@
     URL.revokeObjectURL(url);
   };
 
+  // Export High-Res PNG (with background map drawn directly on canvas)
   btnExportPng.onclick = () => {
-    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0) {
-      alert("No route points to export. Please select filters first.");
+    const showBackground = !chkShowBackgroundMap || chkShowBackgroundMap.checked;
+    if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0 && !showBackground) {
+      alert("No visible elements to export. Please select filters first.");
       return;
     }
+
     const svgRect = mapSvg.getBoundingClientRect();
+    const viewW = Math.round(svgRect.width) || 800;
+    const viewH = Math.round(svgRect.height) || 550;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = viewW * 2; // 2x sharpness
+    canvas.height = viewH * 2;
+    const ctx = canvas.getContext("2d");
+
+    // 1. Dark background
+    ctx.fillStyle = "#141417";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. Direct Canvas Draw of Background Map (guarantees inclusion in PNG)
+    if (showBackground && bgImage.complete && bgImage.naturalWidth > 0 && typeof MAP_IMAGE_CONFIG !== "undefined") {
+      ctx.save();
+      ctx.scale(2, 2); // Match 2x retina scale
+      ctx.translate(pan.x, pan.y);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = MAP_IMAGE_CONFIG.opacity !== undefined ? MAP_IMAGE_CONFIG.opacity : 0.8;
+      ctx.drawImage(
+        bgImage,
+        MAP_IMAGE_CONFIG.x,
+        MAP_IMAGE_CONFIG.y,
+        MAP_IMAGE_CONFIG.width,
+        MAP_IMAGE_CONFIG.height
+      );
+      ctx.restore();
+    }
+
+    // 3. Clone SVG and strip background image to avoid double-rendering / sandbox blocks
+    const svgClone = mapSvg.cloneNode(true);
+    svgClone.setAttribute("width", viewW);
+    svgClone.setAttribute("height", viewH);
+    svgClone.setAttribute("viewBox", `0 0 ${viewW} ${viewH}`);
+
+    const cloneBgImg = svgClone.querySelector("#mapBackgroundImage");
+    if (cloneBgImg) cloneBgImg.remove();
+
     const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(mapSvg);
+    const svgString = serializer.serializeToString(svgClone);
     const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
     const URLObject = window.URL || window.webkitURL || window;
     const blobURL = URLObject.createObjectURL(svgBlob);
 
     const image = new Image();
     image.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = (svgRect.width || 800) * 2;
-      canvas.height = (svgRect.height || 550) * 2;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#141417";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // 4. Draw vectors directly on top of the map layer with full edge-to-edge alignment
       ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
       canvas.toBlob((blob) => {
@@ -708,7 +793,7 @@
   };
 
   window.addEventListener("saveFileLoaded", () => {
-    isMapBlank = true; // Reset blank state so a newly loaded file fits upon first toggle
+    isMapBlank = true;
     generateMap();
   });
 
