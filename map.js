@@ -29,6 +29,7 @@
   const btnExportPng = document.getElementById("btnExportPng");
   const btnFilterAll = document.getElementById("btnFilterAll");
   const btnFilterNone = document.getElementById("btnFilterNone");
+  const chkShowBackgroundMap = document.getElementById("chkShowBackgroundMap");
 
   // Robust payload resolver that works whether app.js uses window.rawSavePayload or local savePayload
   function getSavePayload() {
@@ -165,6 +166,10 @@
 
       mapFilterPills.appendChild(pill);
     });
+  }
+
+  if (chkShowBackgroundMap) {
+    chkShowBackgroundMap.addEventListener("change", generateMap);
   }
 
   if (chkShowRouteArrows) {
@@ -313,6 +318,20 @@
   function renderMap(points, placements, showArrows) {
     mapViewport.innerHTML = "";
     const s = getNodeScale();
+
+    // --- Layer 0: Background Map Image ---
+    const showBackground = chkShowBackgroundMap ? chkShowBackgroundMap.checked : true;
+    if (showBackground && typeof MAP_IMAGE_CONFIG !== "undefined" && MAP_IMAGE_CONFIG.url) {
+      const bgImg = document.createElementNS("http://www.w3.org/2000/svg", "image");
+      bgImg.setAttribute("href", MAP_IMAGE_CONFIG.url);
+      bgImg.setAttribute("x", MAP_IMAGE_CONFIG.x);
+      bgImg.setAttribute("y", MAP_IMAGE_CONFIG.y);
+      bgImg.setAttribute("width", MAP_IMAGE_CONFIG.width);
+      bgImg.setAttribute("height", MAP_IMAGE_CONFIG.height);
+      bgImg.setAttribute("opacity", MAP_IMAGE_CONFIG.opacity !== undefined ? MAP_IMAGE_CONFIG.opacity : 0.8);
+      bgImg.setAttribute("preserveAspectRatio", MAP_IMAGE_CONFIG.preserveAspectRatio || "none");
+      mapViewport.appendChild(bgImg);
+    }
 
     // --- Layer 1: Gourd Placement Lines (Orange) ---
     if (placements.length > 0) {

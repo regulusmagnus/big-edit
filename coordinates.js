@@ -1,10 +1,13 @@
 // Visual styling config mapped by entity type
 const MAP_TYPE_CONFIG = {
-  "Gate": { color: "#3b82f6", badge: "GATE" },
-  "Station": { color: "#8b5cf6", badge: "STN" },
-  "Lamp": { color: "#f59e0b", badge: "LAMP" },
-  "Gourd": { color: "#10b981", badge: "GOURD" },
-  "Beacon": { color: "#06b6d4", badge: "ORB" },
+  "Gate": { color: "#f6763b", badge: "GATE" },
+  "Key": { color: "#1ae757", badge: "KEY" },
+  "Door": { color: "#8aa0ff", badge: "DOOR" },
+  "Gourd": { color: "#ce2ac0", badge: "GOURD" },
+  "Radio": { color: "#2d85a8", badge: "RADIO" },
+  "Light": { color: "#f59e0b", badge: "LAMP" },
+  "Tower": { color: "#b91010", badge: "TOWER" },
+  "Beacon": { color: "#c3ec2f", badge: "ORB" },
   "Default": { color: "#9ca3af", badge: "POINT" }
 };
 
@@ -22,6 +25,17 @@ function getGourdSlotLocation(slotValue) {
   const val = Number(slotValue);
   return GOURD_SLOT_LOCATIONS.find(loc => val >= loc.min && val <= loc.max) || null;
 }
+
+// Background Map Image Configuration
+const MAP_IMAGE_CONFIG = {
+  url: "big-map.jpeg",
+  x: 920,          // Top-left X coordinate
+  y: 3070,         // Top-left Y coordinate
+  width: 1500,     // Total width in coordinate units
+  height: 1500,    // Total height in coordinate units
+  opacity: 0.7,    // 0.0 to 1.0 (useful for seeing the grid/features through it)
+  preserveAspectRatio: "none" // Allows independent X and Y stretching for precise alignment
+};
 
 const COORDINATES_DATABASE = [
   { key: "SpawnHubGate", y: 3537, x: 1387, type: "Gate", label: "temp"},
