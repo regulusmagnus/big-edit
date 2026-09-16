@@ -19,6 +19,7 @@
   const mapTooltip = document.getElementById("mapTooltip");
   const mapStatus = document.getElementById("mapStatus");
   const mapFilterPills = document.getElementById("mapFilterPills");
+  const chkShowRouteArrows = document.getElementById("chkShowRouteArrows");
   const chkShowGourdPlacements = document.getElementById("chkShowGourdPlacements");
   const btnZoomIn = document.getElementById("btnZoomIn");
   const btnZoomOut = document.getElementById("btnZoomOut");
@@ -165,6 +166,10 @@
     });
   }
 
+  if (chkShowRouteArrows) {
+    chkShowRouteArrows.addEventListener("change", generateMap);
+  }
+
   if (chkShowGourdPlacements) {
     chkShowGourdPlacements.addEventListener("change", generateMap);
   }
@@ -203,6 +208,7 @@
     }
 
     const showPlacements = chkShowGourdPlacements && chkShowGourdPlacements.checked;
+    const showArrows = chkShowRouteArrows && chkShowRouteArrows.checked;
 
     if (enabledTypes.size === 0 && !showPlacements) {
       mapStatus.textContent = "Select filters above to display route points";
@@ -288,11 +294,11 @@
     mapStatus.classList.add("hidden");
     mapStatus.style.display = "none";
 
-    renderMap(currentPathPoints, currentGourdPlacements);
+    renderMap(currentPathPoints, currentGourdPlacements, showArrows);
     fitToViewport(currentPathPoints, currentGourdPlacements);
   }
 
-  function renderMap(points, placements) {
+  function renderMap(points, placements, showArrows) {
     mapViewport.innerHTML = "";
     const s = getNodeScale();
 
@@ -400,41 +406,43 @@
     }
 
     // --- Layer 2: Sequential Route Arrows (Emerald Green) ---
-    const linesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    linesGroup.setAttribute("id", "mapTrailLines");
+    if (showArrows && points.length > 1) {
+      const linesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      linesGroup.setAttribute("id", "mapTrailLines");
 
-    for (let i = 0; i < points.length - 1; i++) {
-      const p1 = points[i];
-      const p2 = points[i + 1];
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
 
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      const dist = Math.hypot(dx, dy);
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dist = Math.hypot(dx, dy);
 
-      if (dist > (BASE_RADIUS * 2) * s) {
-        const offStart = (BASE_RADIUS + 1) * s;
-        const offEnd = (BASE_RADIUS + 5) * s;
+        if (dist > (BASE_RADIUS * 2) * s) {
+          const offStart = (BASE_RADIUS + 1) * s;
+          const offEnd = (BASE_RADIUS + 5) * s;
 
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("class", "map-route-line");
-        line.setAttribute("data-p1x", p1.x);
-        line.setAttribute("data-p1y", p1.y);
-        line.setAttribute("data-p2x", p2.x);
-        line.setAttribute("data-p2y", p2.y);
-        line.setAttribute("data-dist", dist);
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("class", "map-route-line");
+          line.setAttribute("data-p1x", p1.x);
+          line.setAttribute("data-p1y", p1.y);
+          line.setAttribute("data-p2x", p2.x);
+          line.setAttribute("data-p2y", p2.y);
+          line.setAttribute("data-dist", dist);
 
-        line.setAttribute("x1", p1.x + (dx / dist) * offStart);
-        line.setAttribute("y1", p1.y + (dy / dist) * offStart);
-        line.setAttribute("x2", p2.x - (dx / dist) * offEnd);
-        line.setAttribute("y2", p2.y - (dy / dist) * offEnd);
-        line.setAttribute("stroke", "#10b981");
-        line.setAttribute("stroke-width", 2.5 * s);
-        line.setAttribute("stroke-dasharray", `${5 * s} ${3 * s}`);
-        line.setAttribute("marker-end", "url(#mapArrowhead)");
-        linesGroup.appendChild(line);
+          line.setAttribute("x1", p1.x + (dx / dist) * offStart);
+          line.setAttribute("y1", p1.y + (dy / dist) * offStart);
+          line.setAttribute("x2", p2.x - (dx / dist) * offEnd);
+          line.setAttribute("y2", p2.y - (dy / dist) * offEnd);
+          line.setAttribute("stroke", "#10b981");
+          line.setAttribute("stroke-width", 2.5 * s);
+          line.setAttribute("stroke-dasharray", `${5 * s} ${3 * s}`);
+          line.setAttribute("marker-end", "url(#mapArrowhead)");
+          linesGroup.appendChild(line);
+        }
       }
+      mapViewport.appendChild(linesGroup);
     }
-    mapViewport.appendChild(linesGroup);
 
     // --- Layer 3: Sequential Route Nodes ---
     const nodesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
