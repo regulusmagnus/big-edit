@@ -5,6 +5,7 @@
   let dragStart = { x: 0, y: 0 };
   let currentPathPoints = [];
   let currentGourdPlacements = [];
+  let isMapBlank = true; // Tracks whether the map canvas currently has no rendered items
   const enabledTypes = new Set(); // Starts empty (all deselected)
 
   // Size Constraints
@@ -200,6 +201,7 @@
     const payload = getSavePayload();
 
     if (!payload || !Array.isArray(payload.entries)) {
+      isMapBlank = true;
       mapStatus.textContent = "Upload a save file to view route";
       mapStatus.classList.remove("hidden");
       mapStatus.style.display = "flex";
@@ -211,6 +213,7 @@
     const showArrows = chkShowRouteArrows && chkShowRouteArrows.checked;
 
     if (enabledTypes.size === 0 && !showPlacements) {
+      isMapBlank = true;
       mapStatus.textContent = "Select filters above to display route points";
       mapStatus.classList.remove("hidden");
       mapStatus.style.display = "flex";
@@ -219,6 +222,7 @@
     }
 
     if (typeof COORDINATES_DATABASE === "undefined" || !Array.isArray(COORDINATES_DATABASE)) {
+      isMapBlank = true;
       mapStatus.textContent = "COORDINATES_DATABASE missing";
       mapStatus.classList.remove("hidden");
       mapStatus.style.display = "flex";
@@ -284,6 +288,7 @@
     }
 
     if (currentPathPoints.length === 0 && currentGourdPlacements.length === 0) {
+      isMapBlank = true;
       mapStatus.textContent = "No entries matched the selected filters.";
       mapStatus.classList.remove("hidden");
       mapStatus.style.display = "flex";
@@ -295,7 +300,14 @@
     mapStatus.style.display = "none";
 
     renderMap(currentPathPoints, currentGourdPlacements, showArrows);
-    fitToViewport(currentPathPoints, currentGourdPlacements);
+
+    // Only auto-fit when the map is newly populated from a blank state
+    if (isMapBlank) {
+      fitToViewport(currentPathPoints, currentGourdPlacements);
+      isMapBlank = false;
+    } else {
+      updateTransform();
+    }
   }
 
   function renderMap(points, placements, showArrows) {
@@ -676,6 +688,10 @@
     image.src = blobURL;
   };
 
-  window.addEventListener("saveFileLoaded", generateMap);
+  window.addEventListener("saveFileLoaded", () => {
+    isMapBlank = true; // Reset blank state so a newly loaded file fits upon first toggle
+    generateMap();
+  });
+
   initializeFilters();
 })();

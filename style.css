@@ -19,7 +19,7 @@ body {
 }
 
 .container {
-  max-width: 1440px;
+  max-width: 1680px;
   width: 95%;
   margin: 0 auto;
 }
@@ -606,7 +606,8 @@ input:checked + .slider:before { transform: translateX(20px); }
 .map-container {
   position: relative;
   width: 100%;
-  height: 600px;
+  height: calc(100vh - 220px);
+  min-height: 600px;
   background-color: #141417;
   border: 1px solid var(--card-border);
   border-radius: 8px;
