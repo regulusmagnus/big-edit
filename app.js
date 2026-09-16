@@ -233,6 +233,7 @@ function loadFile(file) {
   reader.onload = (e) => {
     try {
       savePayload = JSON.parse(e.target.result);
+      window.savePayload = savePayload;
       window.rawSavePayload = JSON.parse(e.target.result);
 
       if (!Array.isArray(savePayload.entries)) savePayload.entries = [];
@@ -242,7 +243,7 @@ function loadFile(file) {
       dropZone.classList.add('hidden');
       editorContent.classList.remove('hidden');
 
-      // Unhide Map section and notify map.js
+      // Unhide Map section and dispatch event to map.js
       const mapSection = document.getElementById('mapSection');
       if (mapSection) mapSection.classList.remove('hidden');
       window.dispatchEvent(new CustomEvent('saveFileLoaded'));
@@ -489,7 +490,7 @@ function renderSigns() {
 // Puzzle Tiles State Logic
 function getTileState(tile) {
   const entry = savePayload?.entries?.find(e => e && e.key === tile.item_id);
-  const inInventory = Boolean(savePayload?.inventory?.includes(tile.item_id));
+  const inInventory = savePayload?.inventory?.includes(tile.item_id);
 
   // If in inventory, prioritize Inventory radio regardless of entry existence
   if (inInventory) {
@@ -511,8 +512,7 @@ function getTakenTileSlots(excludeItemId = null) {
   TILE_DEFINITIONS.forEach(t => {
     if (t.item_id === excludeItemId) return;
     const entry = savePayload.entries.find(e => e && e.key === t.item_id);
-    const inInventory = savePayload.inventory && savePayload.inventory.includes(t.item_id);
-    if (entry && Number(entry.value) !== 0 && !inInventory) {
+    if (entry && Number(entry.value) !== 0) {
       taken.add(Number(entry.value));
     }
   });
@@ -521,25 +521,15 @@ function getTakenTileSlots(excludeItemId = null) {
 
 function applyTileState(tile, isFound, mode, slotValue) {
   const entryIdx = savePayload.entries.findIndex(e => e && e.key === tile.item_id);
+  if (entryIdx !== -1) savePayload.entries.splice(entryIdx, 1);
+
   savePayload.inventory = savePayload.inventory.filter(id => id !== tile.item_id);
 
-  if (!isFound) {
-    // If an entry already existed, set to 0 to match game's unplaced state
-    if (entryIdx !== -1) {
-      savePayload.entries[entryIdx].value = 0;
-    }
-  } else if (mode === 'inventory') {
-    if (entryIdx !== -1) {
-      savePayload.entries[entryIdx].value = 0;
-    }
-    if (!savePayload.inventory.includes(tile.item_id)) {
-      savePayload.inventory.push(tile.item_id);
-    }
-  } else if (mode === 'placed' && slotValue != null) {
-    if (entryIdx !== -1) {
-      savePayload.entries[entryIdx].value = Number(slotValue);
-    } else {
+  if (isFound) {
+    if (mode === 'placed' && slotValue != null) {
       savePayload.entries.push({ key: tile.item_id, value: Number(slotValue) });
+    } else {
+      savePayload.inventory.push(tile.item_id);
     }
   }
 
@@ -608,12 +598,12 @@ function renderTiles() {
               <input type="radio" name="tile_mode_${tile.item_id}" value="inventory" ${state.mode === 'inventory' ? 'checked' : ''}>
               <span>Inventory</span>
             </label>
-            <label class="${canPlace ? '' : 'disabled'}" ${canPlace ? '' : 'title="All 4 slots are occupied"'}>
-              <input type="radio" name="tile_mode_${tile.item_id}" value="placed" ${state.mode === 'placed' ? 'checked' : ''} ${canPlace ? '' : 'disabled'}>
+            <label class="${canPlace ? '' : 'disabled'}" ${canPlace ? '' : 'title="All slots are currently filled"'}>
+              <input type="radio" name="tile_mode_${tile.item_id}" value="placed" ${state.mode === 'placed' && canPlace ? 'checked' : ''} ${canPlace ? '' : 'disabled'}>
               <span>Placed</span>
             </label>
           </div>
-          <div class="slot-select-wrapper ${state.mode === 'placed' ? '' : 'hidden'}">
+          <div class="slot-select-wrapper ${state.mode === 'placed' && canPlace ? '' : 'hidden'}">
             <select class="slot-select">${slotOptions}</select>
           </div>
         </div>
@@ -1115,10 +1105,8 @@ if (btnAllTilesNotFound) {
   btnAllTilesNotFound.onclick = () => {
     if (!savePayload || typeof TILE_DEFINITIONS === 'undefined') return;
     TILE_DEFINITIONS.forEach(tile => {
-      const entry = savePayload.entries.find(e => e && e.key === tile.item_id);
-      if (entry) {
-        entry.value = 0;
-      }
+      const entryIdx = savePayload.entries.findIndex(e => e && e.key === tile.item_id);
+      if (entryIdx !== -1) savePayload.entries.splice(entryIdx, 1);
       savePayload.inventory = savePayload.inventory.filter(id => id !== tile.item_id);
     });
     renderInventory();
@@ -1129,12 +1117,9 @@ if (btnAllTilesNotFound) {
 if (btnAllTilesInventory) {
   btnAllTilesInventory.onclick = () => {
     if (!savePayload || typeof TILE_DEFINITIONS === 'undefined') return;
-    if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
     TILE_DEFINITIONS.forEach(tile => {
-      const entry = savePayload.entries.find(e => e && e.key === tile.item_id);
-      if (entry) {
-        entry.value = 0;
-      }
+      const entryIdx = savePayload.entries.findIndex(e => e && e.key === tile.item_id);
+      if (entryIdx !== -1) savePayload.entries.splice(entryIdx, 1);
       if (!savePayload.inventory.includes(tile.item_id)) {
         savePayload.inventory.push(tile.item_id);
       }
