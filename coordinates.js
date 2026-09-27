@@ -29,10 +29,10 @@ function getGourdSlotLocation(slotValue) {
 // Background Map Image Configuration
 const MAP_IMAGE_CONFIG = {
   url: "big-map.jpeg",
-  x: 920,          // Top-left X coordinate
-  y: 3070,         // Top-left Y coordinate
-  width: 1500,     // Total width in coordinate units
-  height: 1500,    // Total height in coordinate units
+  x: 915,          // Top-left X coordinate
+  y: 3073,         // Top-left Y coordinate
+  width: 1508.25,     // Total width in coordinate units
+  height: 1507.75,    // Total height in coordinate units
   opacity: 0.7,    // 0.0 to 1.0 (useful for seeing the grid/features through it)
   preserveAspectRatio: "none" // Allows independent X and Y stretching for precise alignment
 };
@@ -113,6 +113,8 @@ const COORDINATES_DATABASE = [
   { key: "gourdCharadesRooms", y: 4429, x: 1864, type: "Gourd", label: "temp"},
   { key: "gourdSpeedObby", y: 4507, x: 1759, type: "Gourd", label: "temp"},
   { key: "gourdPoetAndPontiff", y: 4511, x: 1898, type: "Gourd", label: "temp"},
+  { key: "43abbd8b-5d4c-486b-a65d-189a111605f2", y: 3042, x: 1660, type: "Beacon"},
+  { key: "28762b63-3e56-4132-a66f-8d5ad090eb21", y: 3043, x: 1666, type: "Beacon"},
   { key: "a63e8fae-211e-4c2f-bc86-afde28fc07cb", y: 3069, x: 1119, type: "Beacon", label: "temp"},
   { key: "75bb0253-e96c-4efe-915c-2b0d51ea44c7", y: 3164, x: 1432, type: "Beacon", label: "temp"},
   { key: "f902d694-7312-42aa-8e0a-2b96f4b6b3a4", y: 3201, x: 1351, type: "Beacon", label: "temp"},

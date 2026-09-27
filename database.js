@@ -316,6 +316,10 @@ const GOURD_SLOTS = [
 
 // Orb Beacons
 const ORB_BEACON_DATABASE = [
+  {coordinate_1: 3042, coordinate_2: 1660, light_id: "43abbd8b-5d4c-486b-a65d-189a111605f2", orb_id: "b95078fd-d8f2-4fd9-b2aa-ecf8b84fdad7",
+    link: ""},
+  {coordinate_1: 3043, coordinate_2: 1666, light_id: "28762b63-3e56-4132-a66f-8d5ad090eb21", orb_id: "cf2e3191-4c77-4ce9-8c56-f43a73d6e531",
+    link: ""},
   {coordinate_1: 3069, coordinate_2: 1119, light_id: "a63e8fae-211e-4c2f-bc86-afde28fc07cb", orb_id: "c716c86d-81a7-40cc-873f-0405821dbd72",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=zr2MSn1KpT"},
   {coordinate_1: 3164, coordinate_2: 1432, light_id: "75bb0253-e96c-4efe-915c-2b0d51ea44c7", orb_id: "6beb48a3-60de-41e8-a9f6-d39772bcdfa4",
@@ -619,7 +623,7 @@ const CHARACTER_COLORS = [
   { index: 9, name: "Espresso Brown", hex: "#463A30" },
   { index: 10, name: "Tangerine Orange", hex: "#FB7A21" },
   { index: 11, name: "Pale Peachy Pink", hex: "#F9DBCE" },
-  { index: 12, name: "Pastel Lemon", hex: "#F8F896" },
+  { index: 12, name: "Pastel Lime", hex: "#F8F896" },
   { index: 13, name: "Warm Taupe", hex: "#A79689" },
   { index: 14, name: "Crimson", hex: "#C22941" },
   { index: 15, name: "Emerald Green", hex: "#259A58" },
