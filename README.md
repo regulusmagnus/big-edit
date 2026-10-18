@@ -5,7 +5,7 @@ A save file editor for the PC/Steam version of Big Walk
 
 While the source code for this was mostly produced with AI assistance, lots of manual effort was required to determine how the save files work and what the various obfuscated IDs and key values mean. Coordinates for the orb beacons were collected "by hand" using the in-game coordinate box.
 
-Special thanks to Discord user carawzoh for providing a 100% complete save file.
+Special thanks to Discord user carawzoh for providing a 100% complete save file. Thanks also to michaeldewey10 for Big Hack and TetraFlash for Lantern Percent, which helped me find the last few beacons.
 
 Note: House House states that there is not canon terminology for the various things in the game. The save files use "gourd" for the primary collectables, so that's what is used here. Puzzle labels are likewise based on what's in the game data. Other items are labeled as makes sense to me.
 

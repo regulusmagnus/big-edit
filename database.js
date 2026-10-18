@@ -486,12 +486,16 @@ const ORB_BEACON_DATABASE = [
     link: "https://wand.com/maps/big-walk/island-big-walk?location=VSjN6b2oWC"},
   {coordinate_1: 3947, coordinate_2: 1381, light_id: "ec3fe2fa-6d2e-4d84-b111-7864c899bae8", orb_id: "001b483b-de83-4880-9b7c-994b672175bc",
     link: ""},
+  {coordinate_1: 3972, coordinate_2: 1787, light_id: "db25c29a-634b-4806-863e-358c42ef8d4b", orb_id: "13956d25-97a1-4b5c-9992-00c187092476",
+    link: ""},
   {coordinate_1: 4021, coordinate_2: 1875, light_id: "160238fb-8fef-4abd-a7a1-d9c2aa4b6f0c", orb_id: "7ba7b0e5-af33-4246-a648-ee09b45dc196",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=J1WCo0d1ts"},
   {coordinate_1: 4033, coordinate_2: 1859, light_id: "2a24dbaa-e33e-4eeb-8af8-8c428de0b5f3", orb_id: "4274d393-5d48-4e94-ab9d-a865e0155827",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=jNlIcyMWWU"},
   {coordinate_1: 4038, coordinate_2: 1862, light_id: "8bcab6e6-730c-4e35-82a2-60f5a999017e", orb_id: "3191264d-2b5a-47a0-8054-fa16544d54ce",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=6mOZ5LYTEg"},
+  {coordinate_1: 4039, coordinate_2: 1780, light_id: "bee48e6f-e017-4830-9dc6-7623951c6f38", orb_id: "f4819494-6b1d-48ef-823b-4b26d2ceda53",
+    link: ""},
   {coordinate_1: 4041, coordinate_2: 1874, light_id: "98e29c66-8142-4839-8330-062310ad3fa2", orb_id: "5cd38107-3b8e-42de-b08a-f60a8083265a",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=qQkZQ8zVhX"},
   {coordinate_1: 4113, coordinate_2: 1867, light_id: "949ae672-5237-4c67-be7b-ad497e19769e", orb_id: "0e8faaf2-b5fd-4906-aaab-788f8ccbf603",
@@ -512,6 +516,8 @@ const ORB_BEACON_DATABASE = [
     link: "https://wand.com/maps/big-walk/island-big-walk?location=codubuJrF8"},
   {coordinate_1: 4246, coordinate_2: 1920, light_id: "5c594416-ade6-4a99-b080-9b98a23d593c", orb_id: "b5461e87-1a09-4f2c-b9b5-158f195adbf3",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=Jvge5OJgr6"},
+  {coordinate_1: 4260, coordinate_2: 1690, light_id: "62c451e7-4ec8-4626-afce-56652257033a", orb_id: "db6fc3f6-366c-4cf9-81f1-9c45cbdceef4",
+    link: ""},
   {coordinate_1: 4343, coordinate_2: 1844, light_id: "22f81a3d-1ed4-49b0-b4eb-0d44e8116da6", orb_id: "b28ac861-6c5d-4702-8b11-ef38df1eac22",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=m9UewXrLOm"},
   {coordinate_1: 4358, coordinate_2: 1842, light_id: "bcc02dfe-1cff-4ee8-b68f-53eee7cab476", orb_id: "98c2cd14-bbcf-4066-b58c-d7d23d2757f1",
@@ -519,7 +525,9 @@ const ORB_BEACON_DATABASE = [
   {coordinate_1: 4396, coordinate_2: 1697, light_id: "28df1667-24c9-4005-8d48-fbe0c3082a66", orb_id: "1329e6b4-8821-4add-98c3-9f71eceeb0e4",
     link: "https://wand.com/maps/big-walk/island-big-walk?location=G27cDx76Tx"},
   {coordinate_1: 4497, coordinate_2: 1761, light_id: "8bf8d10f-7ec6-4940-b614-394e9cf72ccf", orb_id: "5a87bda7-9397-481d-80f8-d9e52ec98242",
-    link: "https://wand.com/maps/big-walk/island-big-walk?location=fIeWEDpdeE"}
+    link: "https://wand.com/maps/big-walk/island-big-walk?location=fIeWEDpdeE"},
+  {coordinate_1: 4499, coordinate_2: 1945, light_id: "b5f98bb9-93be-4c0a-97ea-d2b4a7adbc80", orb_id: "3bfaaa40-7101-4f52-ad72-a283a8e39cac",
+    link: ""}
 ]
 
 // Vacant Orb Beacon Pedestals
