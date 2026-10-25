@@ -483,6 +483,7 @@ function renderLightFixtures() {
 
     lightFixturesContainer.appendChild(row);
   });
+  applySectionFilter("lightFixturesContainer");
 }
 
 // Editable Signs Renderer
@@ -677,6 +678,7 @@ function renderTiles() {
 
     tilesContainer.appendChild(groupEl);
   });
+  applySectionFilter("tilesContainer");
 }
 
 function getTakenSlots(excludeGourdKey = null, entryMap = null, inventorySet = null) {
@@ -874,6 +876,7 @@ function renderGourds() {
 
     gourdsContainer.appendChild(groupEl);
   });
+  applySectionFilter("gourdsContainer");
 }
 
 // Character Colors State Logic
@@ -1047,6 +1050,69 @@ function renderInventory() {
   });
 }
 
+
+// Section Instant Search / Filter Logic
+function applySectionFilter(containerId) {
+  const input = document.querySelector(`.section-filter-input[data-target="${containerId}"]`);
+  if (!input) return;
+  const query = input.value.trim().toLowerCase();
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (containerId === 'orbBeaconsContainer' || containerId === 'lightFixturesContainer') {
+    container.querySelectorAll('.toggle-row').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const matches = !query || text.includes(query);
+      row.classList.toggle('hidden', !matches);
+    });
+  } else if (containerId === 'gourdsContainer' || containerId === 'tilesContainer') {
+    container.querySelectorAll('.area-group').forEach(group => {
+      let visibleInGroup = 0;
+      const title = group.querySelector('.area-title')?.textContent.toLowerCase() || '';
+      const groupMatches = Boolean(query && title.includes(query));
+
+      group.querySelectorAll('.gourd-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        const matches = !query || groupMatches || text.includes(query);
+        card.classList.toggle('hidden', !matches);
+        if (matches) visibleInGroup++;
+      });
+
+      group.classList.toggle('hidden', query.length > 0 && visibleInGroup === 0);
+    });
+  } else if (containerId === 'inventoryContainer') {
+    container.querySelectorAll('.inventory-group').forEach(group => {
+      let visibleInGroup = 0;
+      const title = group.querySelector('.area-title')?.textContent.toLowerCase() || '';
+      const groupMatches = Boolean(query && title.includes(query));
+
+      group.querySelectorAll('.inventory-checkbox-row').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const matches = !query || groupMatches || text.includes(query);
+        row.classList.toggle('hidden', !matches);
+        if (matches) visibleInGroup++;
+      });
+
+      group.classList.toggle('hidden', query.length > 0 && visibleInGroup === 0);
+    });
+  }
+}
+
+// Global event delegation for real-time section filtering
+if (typeof document !== 'undefined' && document.addEventListener) {
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('section-filter-input')) {
+      applySectionFilter(e.target.dataset.target);
+    }
+  });
+
+  document.addEventListener('search', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('section-filter-input')) {
+      applySectionFilter(e.target.dataset.target);
+    }
+  });
+}
+
 function renderUI() {
   renderUnlocks();
   renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
@@ -1058,6 +1124,10 @@ function renderUI() {
   renderGourds();
   renderCharacterColors();
   renderInventory();
+  // Re-apply any active filters
+  document.querySelectorAll('.section-filter-input').forEach(input => {
+    if (input.dataset.target) applySectionFilter(input.dataset.target);
+  });
 }
 
 // Bulk Operations Logic

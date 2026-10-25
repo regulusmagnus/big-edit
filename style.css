@@ -105,6 +105,7 @@ details.card[open] summary::after {
 
 /* Section Action Toolbars */
 .section-toolbar {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -655,4 +656,22 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 @media (max-width: 600px) {
   .sections-grid { grid-template-columns: 1fr; }
+}
+.section-filter-input {
+  margin-left: auto;
+  background: #141417;
+  color: var(--text);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  min-width: 190px;
+  transition: border-color 0.2s;
+}
+.section-filter-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.section-filter-input::-webkit-search-cancel-button {
+  cursor: pointer;
 }
