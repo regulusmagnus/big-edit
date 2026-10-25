@@ -550,7 +550,7 @@
         mapTooltip.innerHTML = `
           <strong>#${pt.order}: ${pt.label}</strong><br>
           <span style="color: ${typeCfg.color};">Type: ${pt.type}</span><br>
-          <span style="color: var(--text-muted);">Coords: (${pt.x}, ${pt.y})</span><br>
+          <span style="color: var(--text-muted);">Coords: (${pt.y}, ${pt.x})</span><br>
           `;
           // <span style="color: var(--text-muted); font-size: 0.75rem;">Key: ${pt.key}</span>
         mapTooltip.classList.remove("hidden");

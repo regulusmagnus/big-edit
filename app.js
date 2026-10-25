@@ -1,4 +1,5 @@
 let savePayload = null;
+let loadedFileName = null;
 const STEAM_PERSONA_CACHE = {};
 const WINDOWS_SAVE_PATH = "%LOCALAPPDATA%Low\\House House\\Big Walk\\user_data\\save_games\\";
 
@@ -229,6 +230,7 @@ dropZone.ondrop = (e) => {
 
 function loadFile(file) {
   if (!file) return;
+  loadedFileName = file.name;
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
@@ -254,20 +256,44 @@ function loadFile(file) {
   reader.readAsText(file);
 }
 
-function isKeyPresent(key) {
-  return savePayload.entries.some(item => item && item.key === key);
+// Pre-indexed fast lookup caches (O(1) lookups during rendering)
+function getIndexMaps() {
+  const entryMap = new Map();
+  if (savePayload && Array.isArray(savePayload.entries)) {
+    savePayload.entries.forEach(item => {
+      if (item && item.key) entryMap.set(item.key, item.value);
+    });
+  }
+  const inventorySet = new Set(Array.isArray(savePayload?.inventory) ? savePayload.inventory : []);
+  return { entryMap, inventorySet };
+}
+
+function isKeyPresent(key, expectedValue = null) {
+  if (!savePayload || !Array.isArray(savePayload.entries)) return false;
+  if (!savePayload || !Array.isArray(savePayload.entries)) return null;
+  const entry = savePayload.entries.find(item => item && item.key === key);
+  if (!entry) return false;
+  if (expectedValue !== null) {
+    return Number(entry.value) === Number(expectedValue);
+  }
+  return Number(entry.value) !== 0;
 }
 
 function setKeyPresent(key, isEnabled, defaultValue = 1) {
   const index = savePayload.entries.findIndex(item => item && item.key === key);
-  if (isEnabled && index === -1) {
-    savePayload.entries.push({ key: key, value: defaultValue });
-  } else if (!isEnabled && index !== -1) {
+  if (isEnabled) {
+    if (index !== -1) {
+      savePayload.entries[index].value = defaultValue;
+    } else {
+      savePayload.entries.push({ key: key, value: defaultValue });
+    }
+  } else if (index !== -1) {
     savePayload.entries.splice(index, 1);
   }
 }
 
 function getEntryValue(key) {
+  if (!savePayload || !Array.isArray(savePayload.entries)) return null;
   const entry = savePayload.entries.find(item => item && item.key === key);
   return entry ? entry.value : null;
 }
@@ -318,8 +344,11 @@ function setEndingGateUnlocked(isUnlocked) {
 function renderToggleGroup(container, definitions) {
   container.innerHTML = '';
   if (!definitions) return;
+  const { entryMap } = getIndexMaps();
   definitions.forEach(def => {
-    const active = isKeyPresent(def.key);
+    const expectedValue = def.value !== undefined ? def.value : 1;
+    const entryVal = entryMap.get(def.key);
+    const active = entryVal !== undefined && entryVal !== null && Number(entryVal) === Number(expectedValue);
     const row = document.createElement('div');
     row.className = 'toggle-row';
     row.innerHTML = `
@@ -330,7 +359,7 @@ function renderToggleGroup(container, definitions) {
       </label>
     `;
     row.querySelector('input').addEventListener('change', (e) => {
-      setKeyPresent(def.key, e.target.checked, def.value !== undefined ? def.value : 1);
+      setKeyPresent(def.key, e.target.checked, expectedValue);
     });
     container.appendChild(row);
   });
@@ -357,12 +386,12 @@ function renderUnlocks() {
 }
 
 // Orb Beacons State Logic
-function getOrbBeaconState(beacon) {
-  const hasOrb = savePayload.inventory.includes(beacon.orb_id);
-  const lightVal = getEntryValue(beacon.light_id);
+function getOrbBeaconState(beacon, entryMap = null, inventorySet = null) {
+  const hasOrb = inventorySet ? inventorySet.has(beacon.orb_id) : (savePayload?.inventory?.includes(beacon.orb_id) ?? false);
+  const lightVal = entryMap ? entryMap.get(beacon.light_id) : getEntryValue(beacon.light_id);
 
   if (hasOrb) return 'inventory';
-  if (lightVal === 1 && !hasOrb) return 'on';
+  if (Number(lightVal) === 1 && !hasOrb) return 'on';
   return 'off';
 }
 
@@ -389,8 +418,9 @@ function renderOrbBeacons() {
   orbBeaconsContainer.innerHTML = '';
   if (typeof ORB_BEACON_DATABASE === 'undefined') return;
 
+  const { entryMap, inventorySet } = getIndexMaps();
   ORB_BEACON_DATABASE.forEach(beacon => {
-    const state = getOrbBeaconState(beacon);
+    const state = getOrbBeaconState(beacon, entryMap, inventorySet);
     const row = document.createElement('div');
     row.className = 'toggle-row';
     const radioName = `beacon_${beacon.coordinate_1}_${beacon.coordinate_2}`;
@@ -433,8 +463,10 @@ function renderLightFixtures() {
   lightFixturesContainer.innerHTML = '';
   if (typeof LIGHT_FIXTURE_DATABASE === 'undefined' || !Array.isArray(LIGHT_FIXTURE_DATABASE)) return;
 
+  const { entryMap } = getIndexMaps();
   LIGHT_FIXTURE_DATABASE.forEach(fixture => {
-    const active = isKeyPresent(fixture.key);
+    const entryVal = entryMap.get(fixture.key);
+    const active = entryVal !== undefined && entryVal !== null && Number(entryVal) === 1;
     const row = document.createElement('div');
     row.className = 'toggle-row';
     row.innerHTML = `
@@ -488,32 +520,33 @@ function renderSigns() {
 }
 
 // Puzzle Tiles State Logic
-function getTileState(tile) {
-  const entry = savePayload?.entries?.find(e => e && e.key === tile.item_id);
-  const inInventory = savePayload?.inventory?.includes(tile.item_id);
+function getTileState(tile, entryMap = null, inventorySet = null) {
+  const inInventory = inventorySet ? inventorySet.has(tile.item_id) : (savePayload?.inventory?.includes(tile.item_id) ?? false);
+  const entryVal = entryMap ? entryMap.get(tile.item_id) : getEntryValue(tile.item_id);
 
   // If in inventory, prioritize Inventory radio regardless of entry existence
   if (inInventory) {
     return { found: true, mode: 'inventory', slotValue: null };
   }
   // If in entries and not 0, it is placed in a slot
-  if (entry && Number(entry.value) !== 0) {
-    return { found: true, mode: 'placed', slotValue: Number(entry.value) };
+  if (entryVal !== undefined && entryVal !== null && Number(entryVal) !== 0) {
+    return { found: true, mode: 'placed', slotValue: Number(entryVal) };
   }
   // If entry.value === 0 or no entry at all, it is unselected / not found
   return { found: false, mode: 'inventory', slotValue: null };
 }
 
-function getTakenTileSlots(excludeItemId = null) {
+function getTakenTileSlots(excludeItemId = null, entryMap = null) {
   const taken = new Set();
-  if (!savePayload || !Array.isArray(savePayload.entries) || typeof TILE_DEFINITIONS === 'undefined') {
+  if (!savePayload || !Array.isArray(savePayload.entries) || typeof TILE_DEFINITIONS === 'undefined' || typeof TILE_SLOTS === 'undefined') {
     return taken;
   }
+  const validSlotSet = new Set(TILE_SLOTS.map(s => Number(s.value)));
   TILE_DEFINITIONS.forEach(t => {
     if (t.item_id === excludeItemId) return;
-    const entry = savePayload.entries.find(e => e && e.key === t.item_id);
-    if (entry && Number(entry.value) !== 0) {
-      taken.add(Number(entry.value));
+    const val = entryMap ? entryMap.get(t.item_id) : getEntryValue(t.item_id);
+    if (val !== undefined && validSlotSet.has(Number(val))) {
+      taken.add(Number(val));
     }
   });
   return taken;
@@ -543,6 +576,21 @@ function renderTiles() {
   tilesContainer.innerHTML = '';
   if (typeof TILE_DEFINITIONS === 'undefined' || !Array.isArray(TILE_DEFINITIONS)) return;
 
+  const { entryMap, inventorySet } = getIndexMaps();
+  const validSlots = typeof TILE_SLOTS !== 'undefined' ? TILE_SLOTS : [];
+  const validTileSlotSet = new Set(validSlots.map(s => Number(s.value)));
+
+  // Pre-index occupied tile slots
+  const occupiedTileSlotByItem = new Map();
+  TILE_DEFINITIONS.forEach(t => {
+    if (inventorySet.has(t.item_id)) return;
+    const val = entryMap.get(t.item_id);
+    if (val !== undefined && validTileSlotSet.has(Number(val))) {
+      occupiedTileSlotByItem.set(t.item_id, Number(val));
+    }
+  });
+  const allTakenTileSlots = new Set(occupiedTileSlotByItem.values());
+
   const puzzleGroups = {};
   TILE_DEFINITIONS.forEach(tile => {
     const puzzle = tile.puzzle || "Puzzle Tiles";
@@ -560,11 +608,11 @@ function renderTiles() {
     groupEl.appendChild(titleEl);
 
     puzzleGroups[puzzle].forEach(tile => {
-      const state = getTileState(tile);
-      const takenSlots = getTakenTileSlots(tile.item_id);
+      const state = getTileState(tile, entryMap, inventorySet);
+      const mySlot = occupiedTileSlotByItem.get(tile.item_id);
 
-      const availableSlots = (typeof TILE_SLOTS !== 'undefined' ? TILE_SLOTS : []).filter(slot => {
-        return !takenSlots.has(Number(slot.value)) || Number(slot.value) === Number(state.slotValue);
+      const availableSlots = validSlots.filter(slot => {
+        return Number(slot.value) === mySlot || !allTakenTileSlots.has(Number(slot.value));
       });
 
       // Disable 'Placed' option if all slots are occupied by other tiles
@@ -631,47 +679,57 @@ function renderTiles() {
   });
 }
 
-function getTakenSlots(excludeGourdKey = null) {
+function getTakenSlots(excludeGourdKey = null, entryMap = null, inventorySet = null) {
   const taken = new Set();
-  if (!savePayload || !Array.isArray(savePayload.entries) || typeof GOURD_DEFINITIONS === 'undefined') {
+  if (!savePayload || !Array.isArray(savePayload.entries) || typeof GOURD_DEFINITIONS === 'undefined' || typeof GOURD_SLOTS === 'undefined') {
     return taken;
   }
+  const validSlotSet = new Set(GOURD_SLOTS.map(s => Number(s.value)));
+  const invSet = inventorySet || new Set(savePayload.inventory || []);
 
   GOURD_DEFINITIONS.forEach(g => {
     if (g.key === excludeGourdKey) return;
-    const entry = savePayload.entries.find(e => e && e.key === g.key);
-    const isInventory = g.item_id && savePayload.inventory.includes(g.item_id);
-    if (entry && entry.value !== g.solved_value && !isInventory) {
-      taken.add(Number(entry.value));
+    if (g.item_id && invSet.has(g.item_id)) return;
+    const val = entryMap ? entryMap.get(g.key) : getEntryValue(g.key);
+    if (val !== undefined && validSlotSet.has(Number(val))) {
+      taken.add(Number(val));
     }
   });
 
   return taken;
 }
 
-function getGourdState(gourd) {
+function getGourdState(gourd, entryMap = null, inventorySet = null) {
   const canPuzzle = gourd.solved_value != null;
   const canInventory = Boolean(gourd.item_id);
-  const isSolved = isKeyPresent(gourd.key);
 
   let defaultMode = 'placed';
   if (canPuzzle) defaultMode = 'at_puzzle';
   else if (canInventory) defaultMode = 'inventory';
 
-  if (!isSolved) {
-    return { solved: false, mode: defaultMode, slotValue: null };
-  }
+  const inInventory = canInventory && (
+    inventorySet ? inventorySet.has(gourd.item_id) : (savePayload?.inventory?.includes(gourd.item_id) ?? false)
+  );
+  const currentValue = entryMap ? entryMap.get(gourd.key) : getEntryValue(gourd.key);
 
-  const inInventory = canInventory && savePayload.inventory.includes(gourd.item_id);
-  const currentValue = getEntryValue(gourd.key);
-
-  if (inInventory && canInventory) {
+  if (inInventory) {
     return { solved: true, mode: 'inventory', slotValue: null };
   }
-  if (canPuzzle && currentValue === gourd.solved_value) {
+
+  if (canPuzzle && currentValue !== undefined && currentValue !== null && Number(currentValue) === Number(gourd.solved_value)) {
     return { solved: true, mode: 'at_puzzle', slotValue: null };
   }
-  return { solved: true, mode: 'placed', slotValue: currentValue };
+
+  const isPlacedInSlot = (typeof GOURD_SLOTS !== 'undefined') &&
+    currentValue !== undefined && currentValue !== null &&
+    GOURD_SLOTS.some(s => Number(s.value) === Number(currentValue));
+
+  if (isPlacedInSlot) {
+    return { solved: true, mode: 'placed', slotValue: Number(currentValue) };
+  }
+
+  // Failsafe: any value that's not the specific solved value or recognized placed slot from the database is classified as not solved
+  return { solved: false, mode: defaultMode, slotValue: null };
 }
 
 function applyGourdState(gourd, isSolved, mode, slotValue) {
@@ -705,6 +763,20 @@ function renderGourds() {
   gourdsContainer.innerHTML = '';
   if (typeof GOURD_DEFINITIONS === 'undefined' || typeof GOURD_SLOTS === 'undefined') return;
 
+  const { entryMap, inventorySet } = getIndexMaps();
+  const validSlotSet = new Set(GOURD_SLOTS.map(s => Number(s.value)));
+
+  // Pre-index occupied gourd slots
+  const gourdSlotByKey = new Map();
+  GOURD_DEFINITIONS.forEach(g => {
+    if (g.item_id && inventorySet.has(g.item_id)) return;
+    const val = entryMap.get(g.key);
+    if (val !== undefined && validSlotSet.has(Number(val))) {
+      gourdSlotByKey.set(g.key, Number(val));
+    }
+  });
+  const allTakenSlots = new Set(gourdSlotByKey.values());
+
   // Group gourds by Area
   const areaGroups = {};
   GOURD_DEFINITIONS.forEach(gourd => {
@@ -725,12 +797,12 @@ function renderGourds() {
     areaGroups[area].forEach(gourd => {
       const canPuzzle = gourd.solved_value != null;
       const canInventory = Boolean(gourd.item_id);
-      const state = getGourdState(gourd);
-      const takenSlots = getTakenSlots(gourd.key);
+      const state = getGourdState(gourd, entryMap, inventorySet);
+      const mySlot = gourdSlotByKey.get(gourd.key);
 
       // Filter slots to only those unassigned or currently held by this gourd
       const availableSlots = GOURD_SLOTS.filter(slot => {
-        return !takenSlots.has(Number(slot.value)) || Number(slot.value) === Number(state.slotValue);
+        return Number(slot.value) === mySlot || !allTakenSlots.has(Number(slot.value));
       });
 
       // Determine effective slot selection
@@ -829,7 +901,7 @@ function renderCharacterColors() {
   const playerIds = Object.keys(playerMap);
   if (playerIds.length === 0) {
     characterColorsContainer.innerHTML = '<span class="empty-msg">No character color data found in save file</span>';
-    return;
+  
   }
 
   playerIds.forEach(playerId => {
@@ -900,7 +972,8 @@ function renderCharacterColors() {
 
         // Update save payload
         const key = `${pId}keyLookId${pPart}`;
-        const entry = savePayload.entries.find(item => item && item.key === key);
+        if (!savePayload || !Array.isArray(savePayload.entries)) return null;
+  const entry = savePayload.entries.find(item => item && item.key === key);
         if (entry) {
           entry.value = newIndex;
         } else {
@@ -919,7 +992,7 @@ function renderInventory() {
   inventoryContainer.innerHTML = '';
   if (typeof INVENTORY_DATABASE === 'undefined' || !Array.isArray(INVENTORY_DATABASE)) return;
 
-  const currentInventory = Array.isArray(savePayload?.inventory) ? savePayload.inventory : [];
+  const { inventorySet } = getIndexMaps();
 
   const groups = {};
   INVENTORY_DATABASE.forEach(item => {
@@ -941,7 +1014,7 @@ function renderInventory() {
     listEl.className = 'inventory-items-list';
 
     groups[type].forEach(item => {
-      const isChecked = currentInventory.includes(item.item_id);
+      const isChecked = inventorySet.has(item.item_id);
 
       const row = document.createElement('label');
       row.className = 'inventory-checkbox-row';
@@ -1262,7 +1335,12 @@ if (exportBtn) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = "save_file.sav";
+    const defaultExportName = loadedFileName || (
+      (savePayload?.slotName && savePayload?.filenameUid)
+        ? `save_${savePayload.slotName}_${savePayload.filenameUid}.sav`
+        : "save_file.sav"
+    );
+    a.download = defaultExportName;
     a.click();
     URL.revokeObjectURL(url);
   };
