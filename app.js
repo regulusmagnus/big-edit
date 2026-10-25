@@ -48,6 +48,8 @@ const inventoryContainer = document.getElementById('inventoryContainer');
 const signsContainer = document.getElementById('signsContainer');
 const tilesContainer = document.getElementById('tilesContainer');
 const exportBtn = document.getElementById('exportBtn');
+const btnExpandAll = document.getElementById('btnExpandAll');
+const btnCollapseAll = document.getElementById('btnCollapseAll');
 
 // Bulk Button Elements
 const btnDisableAllUnlocks = document.getElementById('btnDisableAllUnlocks');
@@ -360,9 +362,11 @@ function renderToggleGroup(container, definitions) {
     `;
     row.querySelector('input').addEventListener('change', (e) => {
       setKeyPresent(def.key, e.target.checked, expectedValue);
+      updateOverviewAndBadges();
     });
     container.appendChild(row);
   });
+  updateOverviewAndBadges();
 }
 
 function renderUnlocks() {
@@ -381,8 +385,10 @@ function renderUnlocks() {
   `;
   endingRow.querySelector('input').addEventListener('change', (e) => {
     setEndingGateUnlocked(e.target.checked);
+    updateOverviewAndBadges();
   });
   unlocksContainer.appendChild(endingRow);
+  updateOverviewAndBadges();
 }
 
 // Orb Beacons State Logic
@@ -455,6 +461,8 @@ function renderOrbBeacons() {
 
     orbBeaconsContainer.appendChild(row);
   });
+  applySectionFilter("orbBeaconsContainer");
+  updateOverviewAndBadges();
 }
 
 // Static Light Fixtures Renderer
@@ -479,11 +487,13 @@ function renderLightFixtures() {
 
     row.querySelector('input').addEventListener('change', (e) => {
       setKeyPresent(fixture.key, e.target.checked, 1);
+      updateOverviewAndBadges();
     });
 
     lightFixturesContainer.appendChild(row);
   });
   applySectionFilter("lightFixturesContainer");
+  updateOverviewAndBadges();
 }
 
 // Editable Signs Renderer
@@ -509,15 +519,18 @@ function renderSigns() {
 
     textarea.addEventListener('input', (e) => {
       setStringEntryValue(sign.key, e.target.value);
+      updateOverviewAndBadges();
     });
 
     clearBtn.addEventListener('click', () => {
       textarea.value = '';
       setStringEntryValue(sign.key, '');
+      updateOverviewAndBadges();
     });
 
     signsContainer.appendChild(card);
   });
+  updateOverviewAndBadges();
 }
 
 // Puzzle Tiles State Logic
@@ -679,6 +692,7 @@ function renderTiles() {
     tilesContainer.appendChild(groupEl);
   });
   applySectionFilter("tilesContainer");
+  updateOverviewAndBadges();
 }
 
 function getTakenSlots(excludeGourdKey = null, entryMap = null, inventorySet = null) {
@@ -877,6 +891,7 @@ function renderGourds() {
     gourdsContainer.appendChild(groupEl);
   });
   applySectionFilter("gourdsContainer");
+  updateOverviewAndBadges();
 }
 
 // Character Colors State Logic
@@ -987,6 +1002,7 @@ function renderCharacterColors() {
 
     characterColorsContainer.appendChild(card);
   });
+  updateOverviewAndBadges();
 }
 
 // Grouped Checkbox Inventory Renderer (Always displays all database items)
@@ -1040,6 +1056,7 @@ function renderInventory() {
         renderGourds();
         renderOrbBeacons();
         renderTiles();
+        updateOverviewAndBadges();
       });
 
       listEl.appendChild(row);
@@ -1048,6 +1065,8 @@ function renderInventory() {
     groupEl.appendChild(listEl);
     inventoryContainer.appendChild(groupEl);
   });
+  applySectionFilter("inventoryContainer");
+  updateOverviewAndBadges();
 }
 
 
@@ -1113,6 +1132,197 @@ if (typeof document !== 'undefined' && document.addEventListener) {
   });
 }
 
+function formatPlaytime(totalSeconds) {
+  if (!totalSeconds || isNaN(totalSeconds) || totalSeconds < 0) return '0h 0m';
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
+}
+
+function updateOverviewAndBadges() {
+  if (!savePayload) return;
+  const { entryMap, inventorySet } = getIndexMaps();
+
+  // 1. Save Metadata
+  const slotEl = document.getElementById('overviewSlot');
+  const playtimeEl = document.getElementById('overviewPlaytime');
+  const seedEl = document.getElementById('overviewSeed');
+  const playersEl = document.getElementById('overviewPlayers');
+
+  if (slotEl) slotEl.textContent = savePayload.slotName || 'Unknown';
+  if (playtimeEl) playtimeEl.textContent = formatPlaytime(savePayload.totalPlaytime);
+
+  const seedVal = entryMap.has('worldSeed') ? entryMap.get('worldSeed') : (savePayload.worldSeed ?? 'N/A');
+  if (seedEl) seedEl.textContent = seedVal;
+
+  // Discovered players
+  const playerSet = new Set();
+  if (Array.isArray(savePayload.entries)) {
+    savePayload.entries.forEach(entry => {
+      if (!entry || typeof entry.key !== 'string') return;
+      const match = entry.key.match(/^(.+?)(keyLookId(Head|Torso|Legs))$/);
+      if (match) playerSet.add(match[1]);
+    });
+  }
+  const playerCount = playerSet.size;
+  if (playersEl) playersEl.textContent = playerCount === 1 ? '1 Player' : `${playerCount} Players`;
+
+  // 2. Unlocks
+  let unlocksCount = 0;
+  const totalUnlocks = (typeof UNLOCK_DEFINITIONS !== 'undefined' ? UNLOCK_DEFINITIONS.length : 0) + 1;
+  if (typeof UNLOCK_DEFINITIONS !== 'undefined') {
+    UNLOCK_DEFINITIONS.forEach(def => {
+      const val = entryMap.get(def.key);
+      if (val !== undefined && val !== null && Number(val) === Number(def.value)) {
+        unlocksCount++;
+      }
+    });
+  }
+  if (entryMap.get("EndingGate") === 0) {
+    unlocksCount++;
+  }
+
+  // 3. Gauntlet
+  let gauntletCount = 0;
+  const totalGauntlet = typeof GAUNTLET_DEFINITIONS !== 'undefined' ? GAUNTLET_DEFINITIONS.length : 0;
+  if (typeof GAUNTLET_DEFINITIONS !== 'undefined') {
+    GAUNTLET_DEFINITIONS.forEach(def => {
+      const val = entryMap.get(def.key);
+      if (val !== undefined && val !== null && Number(val) === Number(def.value)) {
+        gauntletCount++;
+      }
+    });
+  }
+
+  // 4. Radios
+  let radiosCount = 0;
+  const totalRadios = typeof RADIO_DEFINITIONS !== 'undefined' ? RADIO_DEFINITIONS.length : 0;
+  if (typeof RADIO_DEFINITIONS !== 'undefined') {
+    RADIO_DEFINITIONS.forEach(def => {
+      const val = entryMap.get(def.key);
+      if (val !== undefined && val !== null && Number(val) === Number(def.value)) {
+        radiosCount++;
+      }
+    });
+  }
+
+  // 5. Gourds
+  let gourdsSolved = 0;
+  const totalGourds = typeof GOURD_DEFINITIONS !== 'undefined' ? GOURD_DEFINITIONS.length : 0;
+  if (typeof GOURD_DEFINITIONS !== 'undefined') {
+    GOURD_DEFINITIONS.forEach(gourd => {
+      const state = getGourdState(gourd, entryMap, inventorySet);
+      if (state.solved) gourdsSolved++;
+    });
+  }
+
+  // 6. Beacons
+  let beaconsActive = 0;
+  const totalBeacons = typeof ORB_BEACON_DATABASE !== 'undefined' ? ORB_BEACON_DATABASE.length : 0;
+  if (typeof ORB_BEACON_DATABASE !== 'undefined') {
+    ORB_BEACON_DATABASE.forEach(beacon => {
+      const state = getOrbBeaconState(beacon, entryMap, inventorySet);
+      if (state !== 'off') beaconsActive++;
+    });
+  }
+
+  // 7. Lights
+  let lightsLit = 0;
+  const totalLights = typeof LIGHT_FIXTURE_DATABASE !== 'undefined' ? LIGHT_FIXTURE_DATABASE.length : 0;
+  if (typeof LIGHT_FIXTURE_DATABASE !== 'undefined') {
+    LIGHT_FIXTURE_DATABASE.forEach(light => {
+      const val = entryMap.get(light.key);
+      if (Number(val) === 1) lightsLit++;
+    });
+  }
+
+  // 8. Signs
+  let signsWritten = 0;
+  const totalSigns = typeof SIGN_DEFINITIONS !== 'undefined' ? SIGN_DEFINITIONS.length : 0;
+  if (typeof SIGN_DEFINITIONS !== 'undefined') {
+    SIGN_DEFINITIONS.forEach(sign => {
+      if (getStringEntryValue(sign.key).trim().length > 0) signsWritten++;
+    });
+  }
+
+  // 9. Tiles
+  let tilesFound = 0;
+  const totalTiles = typeof TILE_DEFINITIONS !== 'undefined' ? TILE_DEFINITIONS.length : 0;
+  if (typeof TILE_DEFINITIONS !== 'undefined') {
+    TILE_DEFINITIONS.forEach(tile => {
+      const state = getTileState(tile, entryMap, inventorySet);
+      if (state.found) tilesFound++;
+    });
+  }
+
+  // 10. Inventory
+  const invCount = Array.isArray(savePayload.inventory) ? savePayload.inventory.length : 0;
+
+  // Stat card updater
+  const updateStatCard = (countId, progId, current, total) => {
+    const countEl = document.getElementById(countId);
+    const progEl = document.getElementById(progId);
+    if (countEl) countEl.textContent = `${current} / ${total}`;
+    if (progEl) {
+      const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+      progEl.style.width = `${pct}%`;
+    }
+  };
+
+  updateStatCard('statGourds', 'progGourds', gourdsSolved, totalGourds);
+  updateStatCard('statBeacons', 'progBeacons', beaconsActive, totalBeacons);
+  updateStatCard('statUnlocks', 'progUnlocks', unlocksCount, totalUnlocks);
+  updateStatCard('statRadios', 'progRadios', radiosCount, totalRadios);
+  updateStatCard('statLights', 'progLights', lightsLit, totalLights);
+
+  const statInvEl = document.getElementById('statInventory');
+  const progInvEl = document.getElementById('progInventory');
+  if (statInvEl) statInvEl.textContent = invCount === 1 ? '1 Item' : `${invCount} Items`;
+  if (progInvEl) progInvEl.style.width = invCount > 0 ? '100%' : '0%';
+
+  // Badge updater
+  const updateBadge = (badgeId, text, isComplete) => {
+    const badgeEl = document.getElementById(badgeId);
+    if (badgeEl) {
+      badgeEl.textContent = text;
+      if (badgeEl.classList && badgeEl.classList.toggle) {
+        badgeEl.classList.toggle('badge-complete', Boolean(isComplete));
+      }
+    }
+  };
+
+  updateBadge('badgeUnlocks', `${unlocksCount} / ${totalUnlocks}`, unlocksCount === totalUnlocks && totalUnlocks > 0);
+  updateBadge('badgeGauntlet', `${gauntletCount} / ${totalGauntlet}`, gauntletCount === totalGauntlet && totalGauntlet > 0);
+  updateBadge('badgeRadios', `${radiosCount} / ${totalRadios}`, radiosCount === totalRadios && totalRadios > 0);
+  updateBadge('badgeGourds', `${gourdsSolved} / ${totalGourds} Solved`, gourdsSolved === totalGourds && totalGourds > 0);
+  updateBadge('badgeInventory', invCount === 1 ? '1 Item' : `${invCount} Items`, false);
+  updateBadge('badgePlayers', playerCount === 1 ? '1 Player' : `${playerCount} Players`, false);
+  updateBadge('badgeBeacons', `${beaconsActive} / ${totalBeacons} Active`, beaconsActive === totalBeacons && totalBeacons > 0);
+  updateBadge('badgeLights', `${lightsLit} / ${totalLights} Lit`, lightsLit === totalLights && totalLights > 0);
+  updateBadge('badgeSigns', `${signsWritten} / ${totalSigns} Written`, signsWritten === totalSigns && totalSigns > 0);
+  updateBadge('badgeTiles', `${tilesFound} / ${totalTiles} Found`, tilesFound === totalTiles && totalTiles > 0);
+}
+
+// Global Expand / Collapse All
+if (btnExpandAll) {
+  btnExpandAll.onclick = () => {
+    document.querySelectorAll('.sections-grid details.card').forEach(d => {
+      d.open = true;
+    });
+  };
+}
+
+if (btnCollapseAll) {
+  btnCollapseAll.onclick = () => {
+    document.querySelectorAll('.sections-grid details.card').forEach(d => {
+      d.open = false;
+    });
+  };
+}
+
 function renderUI() {
   renderUnlocks();
   renderToggleGroup(gauntletContainer, GAUNTLET_DEFINITIONS);
@@ -1128,6 +1338,7 @@ function renderUI() {
   document.querySelectorAll('.section-filter-input').forEach(input => {
     if (input.dataset.target) applySectionFilter(input.dataset.target);
   });
+  updateOverviewAndBadges();
 }
 
 // Bulk Operations Logic

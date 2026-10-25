@@ -23,14 +23,85 @@
   <div id="editorContent" class="hidden">
     <div class="action-header">
       <h2>Save Editor</h2>
-      <button id="exportBtn" class="btn">💾 Export Save File</button>
+      <div class="header-actions">
+        <button id="btnExpandAll" class="btn-sm" type="button" title="Expand all sections">⊞ Expand All</button>
+        <button id="btnCollapseAll" class="btn-sm" type="button" title="Collapse all sections">⊟ Collapse All</button>
+        <button id="exportBtn" class="btn">💾 Export Save File</button>
+      </div>
+    </div>
+
+    <!-- Save Overview / Stats Banner -->
+    <div id="saveOverviewCard" class="card overview-card">
+      <div class="overview-meta-bar">
+        <div class="overview-meta-item">
+          <span class="overview-meta-label">Save Slot</span>
+          <span class="overview-meta-value" id="overviewSlot">—</span>
+        </div>
+        <div class="overview-meta-item">
+          <span class="overview-meta-label">Total Playtime</span>
+          <span class="overview-meta-value" id="overviewPlaytime">—</span>
+        </div>
+        <div class="overview-meta-item">
+          <span class="overview-meta-label">World Seed</span>
+          <span class="overview-meta-value" id="overviewSeed">—</span>
+        </div>
+        <div class="overview-meta-item">
+          <span class="overview-meta-label">Players Discovered</span>
+          <span class="overview-meta-value" id="overviewPlayers">—</span>
+        </div>
+      </div>
+
+      <div class="overview-stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Gourds Solved</span>
+            <span class="stat-count" id="statGourds">0 / 45</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progGourds" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Gates & Unlocks</span>
+            <span class="stat-count" id="statUnlocks">0 / 11</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progUnlocks" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Radio Stations</span>
+            <span class="stat-count" id="statRadios">0 / 7</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progRadios" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Orb Beacons</span>
+            <span class="stat-count" id="statBeacons">0 / 106</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progBeacons" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Lights Lit</span>
+            <span class="stat-count" id="statLights">0 / 71</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progLights" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Inventory Items</span>
+            <span class="stat-count" id="statInventory">0 Items</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progInventory" style="width: 0%"></div></div>
+        </div>
+      </div>
     </div>
 
     <!-- Responsive Multi-Column Section Grid -->
     <div class="sections-grid">
       <!-- Gates & Zone Unlocks (Collapsible) -->
       <details class="card">
-        <summary>Gates & Zone Unlocks</summary>
+        <summary><span class="summary-title">Gates & Zone Unlocks</span><span class="summary-badge" id="badgeUnlocks">0 / 11</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnDisableAllUnlocks">Disable All</button>
@@ -42,7 +113,7 @@
 
       <!-- Endgame Gauntlet (Collapsible) -->
       <details class="card">
-        <summary>Endgame Gauntlet</summary>
+        <summary><span class="summary-title">Endgame Gauntlet</span><span class="summary-badge" id="badgeGauntlet">0 / 9</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnDisableAllGauntlet">Disable All</button>
@@ -54,7 +125,7 @@
 
       <!-- Radio Stations (Collapsible) -->
       <details class="card">
-        <summary>Radio Stations</summary>
+        <summary><span class="summary-title">Radio Stations</span><span class="summary-badge" id="badgeRadios">0 / 7</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnDisableAllRadios">Disable All</button>
@@ -66,7 +137,7 @@
 
       <!-- Gourds (Collapsible - Full Width) -->
       <details class="card col-span-full">
-        <summary>Gourds</summary>
+        <summary><span class="summary-title">Gourds</span><span class="summary-badge" id="badgeGourds">0 / 45 Solved</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnAllGourdsUnsolved">All Unsolved</button>
@@ -81,7 +152,7 @@
 
       <!-- Inventory (Collapsible - Full Width) -->
       <details class="card col-span-full">
-        <summary>Inventory</summary>
+        <summary><span class="summary-title">Inventory</span><span class="summary-badge" id="badgeInventory">0 Items</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnClearAllInventory">Clear All</button>
@@ -94,7 +165,7 @@
 
       <!-- Character Colors (Collapsible - Full Width) -->
       <details class="card col-span-full">
-        <summary>Character Colors</summary>
+        <summary><span class="summary-title">Character Colors</span><span class="summary-badge" id="badgePlayers">0 Players</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnLookupAllSteam">Lookup All Steam Names</button>
@@ -105,7 +176,7 @@
 
       <!-- Orb Beacons (Collapsible - Full Width) -->
       <details class="card col-span-full">
-        <summary>Orb Beacons</summary>
+        <summary><span class="summary-title">Orb Beacons</span><span class="summary-badge" id="badgeBeacons">0 / 106 Active</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnAllBeaconsOff">All Off</button>
@@ -119,7 +190,7 @@
 
       <!-- Static Light Fixtures (Collapsible - Full Width) -->
       <details class="card col-span-full">
-        <summary>Static Light Fixtures</summary>
+        <summary><span class="summary-title">Static Light Fixtures</span><span class="summary-badge" id="badgeLights">0 / 71 Lit</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnDisableAllLights">Disable All</button>
@@ -132,7 +203,7 @@
 
       <!-- Editable Signs (Collapsible - Full Width) -->
       <details class="card col-span-full">
-        <summary>Signs</summary>
+        <summary><span class="summary-title">Signs</span><span class="summary-badge" id="badgeSigns">0 / 4 Written</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnClearAllSigns">Clear All</button>
@@ -143,7 +214,7 @@
 
       <!-- Puzzle Tiles (Collapsible - Full Width) -->
       <details class="card col-span-full">
-        <summary>Puzzle Tiles</summary>
+        <summary><span class="summary-title">Puzzle Tiles</span><span class="summary-badge" id="badgeTiles">0 / 171 Found</span></summary>
         <div class="collapsible-body">
           <div class="section-toolbar">
             <button class="btn-sm" id="btnAllTilesNotFound">All Not Found</button>
