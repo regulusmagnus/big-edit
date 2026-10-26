@@ -20,7 +20,23 @@
     <input type="file" id="fileInput" class="hidden" accept=".sav,.json">
   </div>
 
-  <div id="editorContent" class="hidden">
+  <!-- Navigation Tabs (Visible once a file is loaded) -->
+  <div id="appTabs" class="tab-nav hidden">
+    <div class="tab-group">
+      <button type="button" class="tab-btn active" id="tabBtnEditor" data-tab="editorContent">
+        ✏️ Save Editor
+      </button>
+      <button type="button" class="tab-btn" id="tabBtnMap" data-tab="mapSection">
+        🗺️ Route Map & Analysis
+      </button>
+    </div>
+    <div class="tab-nav-right">
+      <button type="button" class="btn-sm" id="btnChangeFile" title="Load a different save file">📁 Change Save</button>
+    </div>
+  </div>
+
+  <!-- Tab 1: Save Editor (Read/Write) -->
+  <div id="editorContent" class="tab-pane hidden">
     <div class="action-header">
       <h2>Save Editor</h2>
       <div class="header-actions">
@@ -227,10 +243,78 @@
     </div>
   </div>
 
-  <!-- Route Visualizer (Independent from Save Editor) -->
-  <div id="mapSection" class="hidden">
+  <!-- Tab 2: Route Visualizer & Static Save Analysis (Read-Only) -->
+  <div id="mapSection" class="tab-pane hidden">
     <div class="action-header">
-      <h2>Route Visualizer</h2>
+      <h2>Route Map & Analysis</h2>
+      <span class="readonly-badge">🔒 Original Save Summary (Read-Only)</span>
+    </div>
+
+    <!-- Static Save Overview / Stats Banner for Map Tab -->
+    <div id="mapOverviewCard" class="card overview-card">
+      <div class="overview-meta-bar">
+        <div class="overview-meta-item">
+          <span class="overview-meta-label">Save Slot</span>
+          <span class="overview-meta-value" id="mapOverviewSlot">—</span>
+        </div>
+        <div class="overview-meta-item">
+          <span class="overview-meta-label">Total Playtime</span>
+          <span class="overview-meta-value" id="mapOverviewPlaytime">—</span>
+        </div>
+        <div class="overview-meta-item">
+          <span class="overview-meta-label">World Seed</span>
+          <span class="overview-meta-value" id="mapOverviewSeed">—</span>
+        </div>
+        <div class="overview-meta-item">
+          <span class="overview-meta-label">Players Discovered</span>
+          <span class="overview-meta-value" id="mapOverviewPlayers">—</span>
+        </div>
+      </div>
+
+      <div class="overview-stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Puzzles Solved</span>
+            <span class="stat-count" id="mapStatGourds">0 / 45</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="mapProgGourds" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Gates & Unlocks</span>
+            <span class="stat-count" id="mapStatUnlocks">0 / 11</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="mapProgUnlocks" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Radio Stations</span>
+            <span class="stat-count" id="mapStatRadios">0 / 7</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="mapProgRadios" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Orb Beacons</span>
+            <span class="stat-count" id="mapStatBeacons">0 / 106</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="mapProgBeacons" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Light Fixtures</span>
+            <span class="stat-count" id="mapStatLights">0 / 71</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="mapProgLights" style="width: 0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-name">Inventory Items</span>
+            <span class="stat-count" id="mapStatInventory">0 Items</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="mapProgInventory" style="width: 0%"></div></div>
+        </div>
+      </div>
     </div>
 
     <div class="card">

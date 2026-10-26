@@ -539,6 +539,64 @@ input:checked + .slider:before { transform: translateX(20px); }
   flex-wrap: wrap;
 }
 
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--card-border);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0;
+  gap: 1rem;
+}
+
+.tab-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px 6px 0 0;
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: rgba(16, 185, 129, 0.06);
+  border-radius: 6px 6px 0 0;
+}
+
+.readonly-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: #1e1e24;
+  border: 1px solid var(--card-border);
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 /* Save Overview / Stats Banner */
 .overview-card {
   margin-bottom: 1.5rem;
@@ -646,7 +704,7 @@ input:checked + .slider:before { transform: translateX(20px); }
    Route Visualizer / Map Section Styles
 ------------------------------------------------------------- */
 #mapSection {
-  margin-top: 2rem;
+  margin-top: 0;
 }
 
 .map-toolbar {

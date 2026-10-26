@@ -243,13 +243,14 @@ function loadFile(file) {
       if (!Array.isArray(savePayload.entries)) savePayload.entries = [];
       if (!Array.isArray(savePayload.inventory)) savePayload.inventory = [];
       if (!Array.isArray(savePayload.stringEntries)) savePayload.stringEntries = [];
+
+      renderStaticMapOverview(window.rawSavePayload);
       renderUI();
       dropZone.classList.add('hidden');
-      editorContent.classList.remove('hidden');
+      const appTabs = document.getElementById('appTabs');
+      if (appTabs) appTabs.classList.remove('hidden');
+      switchTab('editorContent');
 
-      // Unhide Map section and dispatch event to map.js
-      const mapSection = document.getElementById('mapSection');
-      if (mapSection) mapSection.classList.remove('hidden');
       window.dispatchEvent(new CustomEvent('saveFileLoaded'));
     } catch (err) {
       alert("Could not parse file. Please upload a valid Big Walk save file.");
@@ -259,15 +260,25 @@ function loadFile(file) {
 }
 
 // Pre-indexed fast lookup caches (O(1) lookups during rendering)
-function getIndexMaps() {
+function getIndexMapsForPayload(payload) {
   const entryMap = new Map();
-  if (savePayload && Array.isArray(savePayload.entries)) {
-    savePayload.entries.forEach(item => {
+  if (payload && Array.isArray(payload.entries)) {
+    payload.entries.forEach(item => {
       if (item && item.key) entryMap.set(item.key, item.value);
     });
   }
-  const inventorySet = new Set(Array.isArray(savePayload?.inventory) ? savePayload.inventory : []);
-  return { entryMap, inventorySet };
+  const inventorySet = new Set(Array.isArray(payload?.inventory) ? payload.inventory : []);
+  const stringEntriesMap = new Map();
+  if (payload && Array.isArray(payload.stringEntries)) {
+    payload.stringEntries.forEach(item => {
+      if (item && item.key) stringEntriesMap.set(item.key, item.value);
+    });
+  }
+  return { entryMap, inventorySet, stringEntriesMap };
+}
+
+function getIndexMaps() {
+  return getIndexMapsForPayload(savePayload);
 }
 
 function isKeyPresent(key, expectedValue = null) {
@@ -1142,33 +1153,24 @@ function formatPlaytime(totalSeconds) {
   return `${minutes}m`;
 }
 
-function updateOverviewAndBadges() {
-  if (!savePayload) return;
-  const { entryMap, inventorySet } = getIndexMaps();
+function calculateSaveStats(payload) {
+  if (!payload) return null;
+  const { entryMap, inventorySet, stringEntriesMap } = getIndexMapsForPayload(payload);
 
-  // 1. Save Metadata
-  const slotEl = document.getElementById('overviewSlot');
-  const playtimeEl = document.getElementById('overviewPlaytime');
-  const seedEl = document.getElementById('overviewSeed');
-  const playersEl = document.getElementById('overviewPlayers');
+  // 1. Meta
+  const slotName = payload.slotName || 'Unknown';
+  const playtime = formatPlaytime(payload.totalPlaytime);
+  const worldSeed = entryMap.has('worldSeed') ? entryMap.get('worldSeed') : (payload.worldSeed ?? 'N/A');
 
-  if (slotEl) slotEl.textContent = savePayload.slotName || 'Unknown';
-  if (playtimeEl) playtimeEl.textContent = formatPlaytime(savePayload.totalPlaytime);
-
-  const seedVal = entryMap.has('worldSeed') ? entryMap.get('worldSeed') : (savePayload.worldSeed ?? 'N/A');
-  if (seedEl) seedEl.textContent = seedVal;
-
-  // Discovered players
   const playerSet = new Set();
-  if (Array.isArray(savePayload.entries)) {
-    savePayload.entries.forEach(entry => {
+  if (Array.isArray(payload.entries)) {
+    payload.entries.forEach(entry => {
       if (!entry || typeof entry.key !== 'string') return;
       const match = entry.key.match(/^(.+?)(keyLookId(Head|Torso|Legs))$/);
       if (match) playerSet.add(match[1]);
     });
   }
   const playerCount = playerSet.size;
-  if (playersEl) playersEl.textContent = playerCount === 1 ? '1 Player' : `${playerCount} Players`;
 
   // 2. Unlocks
   let unlocksCount = 0;
@@ -1244,7 +1246,8 @@ function updateOverviewAndBadges() {
   const totalSigns = typeof SIGN_DEFINITIONS !== 'undefined' ? SIGN_DEFINITIONS.length : 0;
   if (typeof SIGN_DEFINITIONS !== 'undefined') {
     SIGN_DEFINITIONS.forEach(sign => {
-      if (getStringEntryValue(sign.key).trim().length > 0) signsWritten++;
+      const text = stringEntriesMap.get(sign.key) || '';
+      if (text.trim().length > 0) signsWritten++;
     });
   }
 
@@ -1259,7 +1262,77 @@ function updateOverviewAndBadges() {
   }
 
   // 10. Inventory
-  const invCount = Array.isArray(savePayload.inventory) ? savePayload.inventory.length : 0;
+  const invCount = Array.isArray(payload.inventory) ? payload.inventory.length : 0;
+
+  return {
+    slotName,
+    playtime,
+    worldSeed,
+    playerCount,
+    unlocksCount, totalUnlocks,
+    gauntletCount, totalGauntlet,
+    radiosCount, totalRadios,
+    gourdsSolved, totalGourds,
+    beaconsActive, totalBeacons,
+    lightsActive, totalLights,
+    signsWritten, totalSigns,
+    tilesFound, totalTiles,
+    invCount
+  };
+}
+
+// Render Static Overview for Map Tab (Computed ONCE from raw untouched save file)
+function renderStaticMapOverview(rawPayload) {
+  const stats = calculateSaveStats(rawPayload);
+  if (!stats) return;
+
+  const slotEl = document.getElementById('mapOverviewSlot');
+  const playtimeEl = document.getElementById('mapOverviewPlaytime');
+  const seedEl = document.getElementById('mapOverviewSeed');
+  const playersEl = document.getElementById('mapOverviewPlayers');
+
+  if (slotEl) slotEl.textContent = stats.slotName;
+  if (playtimeEl) playtimeEl.textContent = stats.playtime;
+  if (seedEl) seedEl.textContent = stats.worldSeed;
+  if (playersEl) playersEl.textContent = stats.playerCount === 1 ? '1 Player' : `${stats.playerCount} Players`;
+
+  const updateStatCard = (countId, progId, current, total) => {
+    const countEl = document.getElementById(countId);
+    const progEl = document.getElementById(progId);
+    if (countEl) countEl.textContent = `${current} / ${total}`;
+    if (progEl) {
+      const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+      progEl.style.width = `${pct}%`;
+    }
+  };
+
+  updateStatCard('mapStatGourds', 'mapProgGourds', stats.gourdsSolved, stats.totalGourds);
+  updateStatCard('mapStatBeacons', 'mapProgBeacons', stats.beaconsActive, stats.totalBeacons);
+  updateStatCard('mapStatUnlocks', 'mapProgUnlocks', stats.unlocksCount, stats.totalUnlocks);
+  updateStatCard('mapStatRadios', 'mapProgRadios', stats.radiosCount, stats.totalRadios);
+  updateStatCard('mapStatLights', 'mapProgLights', stats.lightsActive, stats.totalLights);
+
+  const statInvEl = document.getElementById('mapStatInventory');
+  const progInvEl = document.getElementById('mapProgInventory');
+  if (statInvEl) statInvEl.textContent = stats.invCount === 1 ? '1 Item' : `${stats.invCount} Items`;
+  if (progInvEl) progInvEl.style.width = stats.invCount > 0 ? '100%' : '0%';
+}
+
+// Dynamic Overview and Badges for Save Editor Tab
+function updateOverviewAndBadges() {
+  const stats = calculateSaveStats(savePayload);
+  if (!stats) return;
+
+  // 1. Save Metadata
+  const slotEl = document.getElementById('overviewSlot');
+  const playtimeEl = document.getElementById('overviewPlaytime');
+  const seedEl = document.getElementById('overviewSeed');
+  const playersEl = document.getElementById('overviewPlayers');
+
+  if (slotEl) slotEl.textContent = stats.slotName;
+  if (playtimeEl) playtimeEl.textContent = stats.playtime;
+  if (seedEl) seedEl.textContent = stats.worldSeed;
+  if (playersEl) playersEl.textContent = stats.playerCount === 1 ? '1 Player' : `${stats.playerCount} Players`;
 
   // Stat card updater
   const updateStatCard = (countId, progId, current, total) => {
@@ -1272,16 +1345,16 @@ function updateOverviewAndBadges() {
     }
   };
 
-  updateStatCard('statGourds', 'progGourds', gourdsSolved, totalGourds);
-  updateStatCard('statBeacons', 'progBeacons', beaconsActive, totalBeacons);
-  updateStatCard('statUnlocks', 'progUnlocks', unlocksCount, totalUnlocks);
-  updateStatCard('statRadios', 'progRadios', radiosCount, totalRadios);
-  updateStatCard('statLights', 'progLights', lightsActive, totalLights);
+  updateStatCard('statGourds', 'progGourds', stats.gourdsSolved, stats.totalGourds);
+  updateStatCard('statBeacons', 'progBeacons', stats.beaconsActive, stats.totalBeacons);
+  updateStatCard('statUnlocks', 'progUnlocks', stats.unlocksCount, stats.totalUnlocks);
+  updateStatCard('statRadios', 'progRadios', stats.radiosCount, stats.totalRadios);
+  updateStatCard('statLights', 'progLights', stats.lightsActive, stats.totalLights);
 
   const statInvEl = document.getElementById('statInventory');
   const progInvEl = document.getElementById('progInventory');
-  if (statInvEl) statInvEl.textContent = invCount === 1 ? '1 Item' : `${invCount} Items`;
-  if (progInvEl) progInvEl.style.width = invCount > 0 ? '100%' : '0%';
+  if (statInvEl) statInvEl.textContent = stats.invCount === 1 ? '1 Item' : `${stats.invCount} Items`;
+  if (progInvEl) progInvEl.style.width = stats.invCount > 0 ? '100%' : '0%';
 
   // Badge updater
   const updateBadge = (badgeId, text, isComplete) => {
@@ -1294,16 +1367,55 @@ function updateOverviewAndBadges() {
     }
   };
 
-  updateBadge('badgeUnlocks', `${unlocksCount} / ${totalUnlocks}`, unlocksCount === totalUnlocks && totalUnlocks > 0);
-  updateBadge('badgeGauntlet', `${gauntletCount} / ${totalGauntlet}`, gauntletCount === totalGauntlet && totalGauntlet > 0);
-  updateBadge('badgeRadios', `${radiosCount} / ${totalRadios}`, radiosCount === totalRadios && totalRadios > 0);
-  updateBadge('badgeGourds', `${gourdsSolved} / ${totalGourds} Solved`, gourdsSolved === totalGourds && totalGourds > 0);
-  updateBadge('badgeInventory', invCount === 1 ? '1 Item' : `${invCount} Items`, false);
-  updateBadge('badgePlayers', playerCount === 1 ? '1 Player' : `${playerCount} Players`, false);
-  updateBadge('badgeBeacons', `${beaconsActive} / ${totalBeacons} Active`, beaconsActive === totalBeacons && totalBeacons > 0);
-  updateBadge('badgeLights', `${lightsActive} / ${totalLights} Active`, lightsActive === totalLights && totalLights > 0);
-  updateBadge('badgeSigns', `${signsWritten} / ${totalSigns} Written`, signsWritten === totalSigns && totalSigns > 0);
-  updateBadge('badgeTiles', `${tilesFound} / ${totalTiles} Found`, tilesFound === totalTiles && totalTiles > 0);
+  updateBadge('badgeUnlocks', `${stats.unlocksCount} / ${stats.totalUnlocks}`, stats.unlocksCount === stats.totalUnlocks && stats.totalUnlocks > 0);
+  updateBadge('badgeGauntlet', `${stats.gauntletCount} / ${stats.totalGauntlet}`, stats.gauntletCount === stats.totalGauntlet && stats.totalGauntlet > 0);
+  updateBadge('badgeRadios', `${stats.radiosCount} / ${stats.totalRadios}`, stats.radiosCount === stats.totalRadios && stats.totalRadios > 0);
+  updateBadge('badgeGourds', `${stats.gourdsSolved} / ${stats.totalGourds} Solved`, stats.gourdsSolved === stats.totalGourds && stats.totalGourds > 0);
+  updateBadge('badgeInventory', stats.invCount === 1 ? '1 Item' : `${stats.invCount} Items`, false);
+  updateBadge('badgePlayers', stats.playerCount === 1 ? '1 Player' : `${stats.playerCount} Players`, false);
+  updateBadge('badgeBeacons', `${stats.beaconsActive} / ${stats.totalBeacons} Active`, stats.beaconsActive === stats.totalBeacons && stats.totalBeacons > 0);
+  updateBadge('badgeLights', `${stats.lightsActive} / ${stats.totalLights} Lit`, stats.lightsActive === stats.totalLights && stats.totalLights > 0);
+  updateBadge('badgeSigns', `${stats.signsWritten} / ${stats.totalSigns} Written`, stats.signsWritten === stats.totalSigns && stats.totalSigns > 0);
+  updateBadge('badgeTiles', `${stats.tilesFound} / ${stats.totalTiles} Found`, stats.tilesFound === stats.totalTiles && stats.totalTiles > 0);
+}
+
+// Tab Switching Controller
+function switchTab(tabId) {
+  const tabBtnEditor = document.getElementById('tabBtnEditor');
+  const tabBtnMap = document.getElementById('tabBtnMap');
+  const editorContent = document.getElementById('editorContent');
+  const mapSection = document.getElementById('mapSection');
+
+  if (tabId === 'mapSection') {
+    if (tabBtnEditor) tabBtnEditor.classList.remove('active');
+    if (tabBtnMap) tabBtnMap.classList.add('active');
+    if (editorContent) editorContent.classList.add('hidden');
+    if (mapSection) mapSection.classList.remove('hidden');
+
+    // Refit SVG map once container is visible
+    setTimeout(() => {
+      const btnFitMap = document.getElementById('btnFitMap');
+      if (btnFitMap) btnFitMap.click();
+    }, 50);
+  } else {
+    if (tabBtnMap) tabBtnMap.classList.remove('active');
+    if (tabBtnEditor) tabBtnEditor.classList.add('active');
+    if (mapSection) mapSection.classList.add('hidden');
+    if (editorContent) editorContent.classList.remove('hidden');
+  }
+}
+
+// Tab Navigation Event Bindings
+const tabBtnEditor = document.getElementById('tabBtnEditor');
+const tabBtnMap = document.getElementById('tabBtnMap');
+const btnChangeFile = document.getElementById('btnChangeFile');
+
+if (tabBtnEditor) tabBtnEditor.onclick = () => switchTab('editorContent');
+if (tabBtnMap) tabBtnMap.onclick = () => switchTab('mapSection');
+if (btnChangeFile) {
+  btnChangeFile.onclick = () => {
+    if (fileInput) fileInput.click();
+  };
 }
 
 // Global Expand / Collapse All
