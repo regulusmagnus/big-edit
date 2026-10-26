@@ -8,6 +8,24 @@
   let isMapBlank = true; // Tracks whether the map canvas currently has no rendered items
   const enabledTypes = new Set(); // Starts empty (all deselected)
 
+  // Pre-indexed coordinate lookup cache
+  let coordLookupCache = null;
+  function getCoordLookup() {
+    if (!coordLookupCache && typeof COORDINATES_DATABASE !== "undefined" && Array.isArray(COORDINATES_DATABASE)) {
+      coordLookupCache = new Map();
+      COORDINATES_DATABASE.forEach(item => {
+        if (item && item.key) coordLookupCache.set(item.key, item);
+      });
+    }
+    return coordLookupCache || new Map();
+  }
+
+  // Cached rendered element arrays for O(1) transform scaling (avoids querySelectorAll during zoom)
+  let renderedScaleNodes = [];
+  let renderedRouteLines = [];
+  let renderedGourdLines = [];
+  let transformRafId = null;
+
   // Size Constraints
   const BASE_RADIUS = 8;
   const PEDESTAL_RADIUS = 6;
@@ -94,55 +112,40 @@
     if (!isFinite(s) || s <= 0) return;
 
     // 1. Scale route nodes & gourd pedestals around their centers
-    mapViewport.querySelectorAll('.map-node, .map-pedestal').forEach(el => {
-      const x = el.getAttribute('data-x');
-      const y = el.getAttribute('data-y');
-      el.setAttribute('transform', `translate(${x}, ${y}) scale(${s})`);
-    });
+    for (let i = 0; i < renderedScaleNodes.length; i++) {
+      const item = renderedScaleNodes[i];
+      item.el.setAttribute('transform', `translate(${item.x}, ${item.y}) scale(${s})`);
+    }
 
     // 2. Adjust route line endpoints, stroke width, and dash spacing
-    mapViewport.querySelectorAll('.map-route-line').forEach(line => {
-      const p1x = Number(line.getAttribute('data-p1x'));
-      const p1y = Number(line.getAttribute('data-p1y'));
-      const p2x = Number(line.getAttribute('data-p2x'));
-      const p2y = Number(line.getAttribute('data-p2y'));
-      const dist = Number(line.getAttribute('data-dist'));
-      if (!dist) return;
-
-      const dx = (p2x - p1x) / dist;
-      const dy = (p2y - p1y) / dist;
-      const offStart = (BASE_RADIUS + 1) * s;
-      const offEnd = (BASE_RADIUS + 5) * s;
-
-      line.setAttribute('x1', p1x + dx * offStart);
-      line.setAttribute('y1', p1y + dy * offStart);
-      line.setAttribute('x2', p2x - dx * offEnd);
-      line.setAttribute('y2', p2y - dy * offEnd);
-      line.setAttribute('stroke-width', 2.5 * s);
-      line.setAttribute('stroke-dasharray', `${5 * s} ${3 * s}`);
-    });
+    const routeOffStart = (BASE_RADIUS + 1) * s;
+    const routeOffEnd = (BASE_RADIUS + 5) * s;
+    const routeStroke = 2.5 * s;
+    const routeDash = `${5 * s} ${3 * s}`;
+    for (let i = 0; i < renderedRouteLines.length; i++) {
+      const item = renderedRouteLines[i];
+      item.line.setAttribute('x1', item.p1x + item.dx * routeOffStart);
+      item.line.setAttribute('y1', item.p1y + item.dy * routeOffStart);
+      item.line.setAttribute('x2', item.p2x - item.dx * routeOffEnd);
+      item.line.setAttribute('y2', item.p2y - item.dy * routeOffEnd);
+      item.line.setAttribute('stroke-width', routeStroke);
+      item.line.setAttribute('stroke-dasharray', routeDash);
+    }
 
     // 3. Adjust gourd placement line endpoints, stroke width, and dash spacing
-    mapViewport.querySelectorAll('.map-gourd-line').forEach(line => {
-      const p1x = Number(line.getAttribute('data-p1x'));
-      const p1y = Number(line.getAttribute('data-p1y'));
-      const p2x = Number(line.getAttribute('data-p2x'));
-      const p2y = Number(line.getAttribute('data-p2y'));
-      const dist = Number(line.getAttribute('data-dist'));
-      if (!dist) return;
-
-      const dx = (p2x - p1x) / dist;
-      const dy = (p2y - p1y) / dist;
-      const offStart = (BASE_RADIUS + 1) * s;
-      const offEnd = (PEDESTAL_RADIUS + 5) * s;
-
-      line.setAttribute('x1', p1x + dx * offStart);
-      line.setAttribute('y1', p1y + dy * offStart);
-      line.setAttribute('x2', p2x - dx * offEnd);
-      line.setAttribute('y2', p2y - dy * offEnd);
-      line.setAttribute('stroke-width', 2 * s);
-      line.setAttribute('stroke-dasharray', `${2 * s} ${3 * s}`);
-    });
+    const gourdOffStart = (BASE_RADIUS + 1) * s;
+    const gourdOffEnd = (PEDESTAL_RADIUS + 5) * s;
+    const gourdStroke = 2 * s;
+    const gourdDash = `${2 * s} ${3 * s}`;
+    for (let i = 0; i < renderedGourdLines.length; i++) {
+      const item = renderedGourdLines[i];
+      item.line.setAttribute('x1', item.p1x + item.dx * gourdOffStart);
+      item.line.setAttribute('y1', item.p1y + item.dy * gourdOffStart);
+      item.line.setAttribute('x2', item.p2x - item.dx * gourdOffEnd);
+      item.line.setAttribute('y2', item.p2y - item.dy * gourdOffEnd);
+      item.line.setAttribute('stroke-width', gourdStroke);
+      item.line.setAttribute('stroke-dasharray', gourdDash);
+    }
   }
 
   function updateTransform() {
@@ -152,6 +155,18 @@
     if (scale !== lastScale) {
       lastScale = scale;
       updateElementScales();
+    }
+  }
+
+  function scheduleTransform() {
+    if (transformRafId) return;
+    if (typeof requestAnimationFrame === 'function') {
+      transformRafId = requestAnimationFrame(() => {
+        transformRafId = null;
+        updateTransform();
+      });
+    } else {
+      updateTransform();
     }
   }
 
@@ -258,10 +273,7 @@
       return;
     }
 
-    const coordLookup = new Map();
-    COORDINATES_DATABASE.forEach(item => {
-      if (item && item.key) coordLookup.set(item.key, item);
-    });
+    const coordLookup = getCoordLookup();
 
     currentPathPoints = [];
     currentGourdPlacements = [];
@@ -341,6 +353,9 @@
 
   function renderMap(points, placements, showArrows, showBackground) {
     mapViewport.innerHTML = "";
+    renderedScaleNodes = [];
+    renderedRouteLines = [];
+    renderedGourdLines = [];
     const s = getNodeScale();
 
     // --- Layer 0: Background Map Image ---
@@ -387,29 +402,22 @@
           line.setAttribute("stroke-width", 2 * s);
           line.setAttribute("stroke-dasharray", `${2 * s} ${3 * s}`);
           line.setAttribute("marker-end", "url(#mapArrowheadGourd)");
+          line.setAttribute("data-hover-type", "gourd-line");
+          line.setAttribute("data-tooltip", `
+            <strong style="color: #f97316;">📦 Gourd Placement</strong><br>
+            ${plc.gourdLabel}<br>
+            <span style="color: var(--text-muted);">Placed at:</span> ${plc.pedestalName} (Slot ${plc.slotValue})
+          `.trim());
           line.style.cursor = "pointer";
 
-          line.addEventListener("mouseenter", () => {
-            line.setAttribute("stroke-width", 3.5 * getNodeScale());
-            mapTooltip.innerHTML = `
-              <strong style="color: #f97316;">📦 Gourd Placement</strong><br>
-              ${plc.gourdLabel}<br>
-              <span style="color: var(--text-muted);">Placed at:</span> ${plc.pedestalName} (Slot ${plc.slotValue})
-            `;
-            mapTooltip.classList.remove("hidden");
-            mapTooltip.style.display = "block";
-          });
-
-          line.addEventListener("mousemove", (e) => {
-            const rect = mapSvg.getBoundingClientRect();
-            mapTooltip.style.left = `${e.clientX - rect.left + 14}px`;
-            mapTooltip.style.top = `${e.clientY - rect.top + 14}px`;
-          });
-
-          line.addEventListener("mouseleave", () => {
-            line.setAttribute("stroke-width", 2 * getNodeScale());
-            mapTooltip.classList.add("hidden");
-            mapTooltip.style.display = "none";
+          renderedGourdLines.push({
+            line,
+            p1x: plc.originX,
+            p1y: plc.originY,
+            p2x: plc.targetX,
+            p2y: plc.targetY,
+            dx: dx / dist,
+            dy: dy / dist
           });
 
           placementsGroup.appendChild(line);
@@ -429,29 +437,14 @@
         destCircle.setAttribute("fill", "#f97316");
         destCircle.setAttribute("stroke", "#ffffff");
         destCircle.setAttribute("stroke-width", "1.5");
+        destCircle.setAttribute("data-hover-type", "pedestal");
+        destCircle.setAttribute("data-tooltip", `
+          <strong style="color: #f97316;">Pedestal: ${plc.pedestalName}</strong><br>
+          Holds: ${plc.gourdLabel} (Slot ${plc.slotValue})
+        `.trim());
         destCircle.style.cursor = "pointer";
 
-        destCircle.addEventListener("mouseenter", () => {
-          destCircle.setAttribute("r", PEDESTAL_RADIUS + 2.5);
-          mapTooltip.innerHTML = `
-            <strong style="color: #f97316;">Pedestal: ${plc.pedestalName}</strong><br>
-            Holds: ${plc.gourdLabel} (Slot ${plc.slotValue})
-          `;
-          mapTooltip.classList.remove("hidden");
-          mapTooltip.style.display = "block";
-        });
-
-        destCircle.addEventListener("mousemove", (e) => {
-          const rect = mapSvg.getBoundingClientRect();
-          mapTooltip.style.left = `${e.clientX - rect.left + 14}px`;
-          mapTooltip.style.top = `${e.clientY - rect.top + 14}px`;
-        });
-
-        destCircle.addEventListener("mouseleave", () => {
-          destCircle.setAttribute("r", PEDESTAL_RADIUS);
-          mapTooltip.classList.add("hidden");
-          mapTooltip.style.display = "none";
-        });
+        renderedScaleNodes.push({ el: pedestalGroup, x: plc.targetX, y: plc.targetY });
 
         pedestalGroup.appendChild(destCircle);
         placementsGroup.appendChild(pedestalGroup);
@@ -493,6 +486,17 @@
           line.setAttribute("stroke-width", 2.5 * s);
           line.setAttribute("stroke-dasharray", `${5 * s} ${3 * s}`);
           line.setAttribute("marker-end", "url(#mapArrowhead)");
+
+          renderedRouteLines.push({
+            line,
+            p1x: p1.x,
+            p1y: p1.y,
+            p2x: p2.x,
+            p2y: p2.y,
+            dx: dx / dist,
+            dy: dy / dist
+          });
+
           linesGroup.appendChild(line);
         }
       }
@@ -514,6 +518,13 @@
       node.setAttribute("data-x", pt.x);
       node.setAttribute("data-y", pt.y);
       node.setAttribute("transform", `translate(${pt.x}, ${pt.y}) scale(${s})`);
+      node.setAttribute("data-hover-type", "node");
+      node.setAttribute("data-tooltip", `
+        <strong>#${pt.order}: ${pt.label}</strong><br>
+        <span style="color: ${typeCfg.color};">Type: ${pt.type}</span><br>
+        <span style="color: var(--text-muted);">Coords: (${pt.y}, ${pt.x})</span><br>
+      `.trim());
+      node.style.cursor = "pointer";
 
       const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("cx", 0);
@@ -545,29 +556,7 @@
       node.appendChild(orderText);
       node.appendChild(labelText);
 
-      node.addEventListener("mouseenter", () => {
-        circle.setAttribute("r", BASE_RADIUS + 3);
-        mapTooltip.innerHTML = `
-          <strong>#${pt.order}: ${pt.label}</strong><br>
-          <span style="color: ${typeCfg.color};">Type: ${pt.type}</span><br>
-          <span style="color: var(--text-muted);">Coords: (${pt.y}, ${pt.x})</span><br>
-          `;
-          // <span style="color: var(--text-muted); font-size: 0.75rem;">Key: ${pt.key}</span>
-        mapTooltip.classList.remove("hidden");
-        mapTooltip.style.display = "block";
-      });
-
-      node.addEventListener("mousemove", (e) => {
-        const rect = mapSvg.getBoundingClientRect();
-        mapTooltip.style.left = `${e.clientX - rect.left + 14}px`;
-        mapTooltip.style.top = `${e.clientY - rect.top + 14}px`;
-      });
-
-      node.addEventListener("mouseleave", () => {
-        circle.setAttribute("r", BASE_RADIUS);
-        mapTooltip.classList.add("hidden");
-        mapTooltip.style.display = "none";
-      });
+      renderedScaleNodes.push({ el: node, x: pt.x, y: pt.y });
 
       nodesGroup.appendChild(node);
     });
@@ -620,29 +609,106 @@
     updateTransform();
   }
 
-  // Mouse Drag & Pan Handlers
-  mapSvg.addEventListener("mousedown", (e) => {
-    if (e.button !== 0) return;
-    isDragging = true;
-    dragStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
-    mapSvg.style.cursor = "grabbing";
-  });
+  // Tooltip Delegated Handlers (Eliminates hundreds of per-node event listeners)
+  let currentTooltipTarget = null;
 
-  window.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    pan.x = e.clientX - dragStart.x;
-    pan.y = e.clientY - dragStart.y;
-    updateTransform();
-  });
+  function handleTooltipEnter(el) {
+    const type = el.getAttribute("data-hover-type");
+    if (type === "gourd-line") {
+      el.setAttribute("stroke-width", 3.5 * getNodeScale());
+    } else if (type === "pedestal") {
+      el.setAttribute("r", PEDESTAL_RADIUS + 2.5);
+    } else if (type === "node") {
+      const circle = el.querySelector("circle");
+      if (circle) circle.setAttribute("r", BASE_RADIUS + 3);
+    }
+    const html = el.getAttribute("data-tooltip");
+    if (html && mapTooltip) {
+      mapTooltip.innerHTML = html;
+      mapTooltip.classList.remove("hidden");
+      mapTooltip.style.display = "block";
+    }
+  }
 
-  window.addEventListener("mouseup", () => {
-    if (isDragging) {
-      isDragging = false;
-      mapSvg.style.cursor = "grab";
+  function handleTooltipLeave(el) {
+    const type = el.getAttribute("data-hover-type");
+    if (type === "gourd-line") {
+      el.setAttribute("stroke-width", 2 * getNodeScale());
+    } else if (type === "pedestal") {
+      el.setAttribute("r", PEDESTAL_RADIUS);
+    } else if (type === "node") {
+      const circle = el.querySelector("circle");
+      if (circle) circle.setAttribute("r", BASE_RADIUS);
+    }
+    if (mapTooltip) {
+      mapTooltip.classList.add("hidden");
+      mapTooltip.style.display = "none";
+    }
+  }
+
+  mapSvg.addEventListener("pointerover", (e) => {
+    if (isDragging) return;
+    const target = e.target && e.target.closest ? e.target.closest('[data-tooltip]') : null;
+    if (target && target !== currentTooltipTarget) {
+      if (currentTooltipTarget) handleTooltipLeave(currentTooltipTarget);
+      currentTooltipTarget = target;
+      handleTooltipEnter(target);
     }
   });
 
-  // Cursor-centered Wheel Zoom
+  mapSvg.addEventListener("pointerout", (e) => {
+    if (currentTooltipTarget) {
+      if (!e.relatedTarget || (currentTooltipTarget !== e.relatedTarget && !currentTooltipTarget.contains(e.relatedTarget))) {
+        handleTooltipLeave(currentTooltipTarget);
+        currentTooltipTarget = null;
+      }
+    }
+  });
+
+  mapSvg.addEventListener("pointermove", (e) => {
+    if (isDragging) {
+      pan.x = e.clientX - dragStart.x;
+      pan.y = e.clientY - dragStart.y;
+      scheduleTransform();
+      return;
+    }
+    if (currentTooltipTarget && mapTooltip) {
+      const rect = mapSvg.getBoundingClientRect();
+      mapTooltip.style.left = `${e.clientX - rect.left + 14}px`;
+      mapTooltip.style.top = `${e.clientY - rect.top + 14}px`;
+    }
+  });
+
+  // Pointer Drag & Pan Handlers (Modern Pointer Events with pointer capture support)
+  mapSvg.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    isDragging = true;
+    dragStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+    if (mapSvg.setPointerCapture && e.pointerId !== undefined) {
+      try { mapSvg.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+    mapSvg.style.cursor = "grabbing";
+    if (currentTooltipTarget) {
+      handleTooltipLeave(currentTooltipTarget);
+      currentTooltipTarget = null;
+    }
+  });
+
+  const stopDragging = (e) => {
+    if (isDragging) {
+      isDragging = false;
+      if (mapSvg.releasePointerCapture && e && e.pointerId !== undefined) {
+        try { mapSvg.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+      mapSvg.style.cursor = "grab";
+    }
+  };
+
+  mapSvg.addEventListener("pointerup", stopDragging);
+  mapSvg.addEventListener("pointercancel", stopDragging);
+  window.addEventListener("pointerup", stopDragging);
+
+  // Cursor-centered Wheel Zoom with RAF throttling
   mapSvg.addEventListener("wheel", (e) => {
     e.preventDefault();
     const rect = mapSvg.getBoundingClientRect();
@@ -656,7 +722,7 @@
     pan.y = mouseY - (mouseY - pan.y) * (newScale / scale);
     scale = newScale;
 
-    updateTransform();
+    scheduleTransform();
   }, { passive: false });
 
   btnZoomIn.onclick = () => {

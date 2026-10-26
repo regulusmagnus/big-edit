@@ -360,9 +360,71 @@ function getIndexMaps() {
   return getIndexMapsForPayload(savePayload);
 }
 
+// Microtask debounced overview and badge updater
+let _overviewUpdatePending = false;
+function scheduleOverviewUpdate() {
+  if (_overviewUpdatePending) return;
+  _overviewUpdatePending = true;
+  const runner = () => {
+    _overviewUpdatePending = false;
+    updateOverviewAndBadges();
+  };
+  if (typeof queueMicrotask === 'function') {
+    queueMicrotask(runner);
+  } else if (typeof Promise === 'function') {
+    Promise.resolve().then(runner);
+  } else if (typeof setTimeout === 'function') {
+    setTimeout(runner, 0);
+  } else {
+    runner();
+  }
+}
+
+// Static database grouping caches
+let _cachedInventoryGroups = null;
+function getInventoryGroups() {
+  if (!_cachedInventoryGroups && typeof INVENTORY_DATABASE !== 'undefined' && Array.isArray(INVENTORY_DATABASE)) {
+    const groups = {};
+    INVENTORY_DATABASE.forEach(item => {
+      const type = item.type || "Other";
+      if (!groups[type]) groups[type] = [];
+      groups[type].push(item);
+    });
+    _cachedInventoryGroups = groups;
+  }
+  return _cachedInventoryGroups || {};
+}
+
+let _cachedGourdGroups = null;
+function getGourdGroups() {
+  if (!_cachedGourdGroups && typeof GOURD_DEFINITIONS !== 'undefined' && Array.isArray(GOURD_DEFINITIONS)) {
+    const groups = {};
+    GOURD_DEFINITIONS.forEach(gourd => {
+      const area = gourd.area || "Unknown Area";
+      if (!groups[area]) groups[area] = [];
+      groups[area].push(gourd);
+    });
+    _cachedGourdGroups = groups;
+  }
+  return _cachedGourdGroups || {};
+}
+
+let _cachedTileGroups = null;
+function getTileGroups() {
+  if (!_cachedTileGroups && typeof TILE_DEFINITIONS !== 'undefined' && Array.isArray(TILE_DEFINITIONS)) {
+    const groups = {};
+    TILE_DEFINITIONS.forEach(tile => {
+      const puzzle = tile.puzzle || "Puzzle Tiles";
+      if (!groups[puzzle]) groups[puzzle] = [];
+      groups[puzzle].push(tile);
+    });
+    _cachedTileGroups = groups;
+  }
+  return _cachedTileGroups || {};
+}
+
 function isKeyPresent(key, expectedValue = null) {
   if (!savePayload || !Array.isArray(savePayload.entries)) return false;
-  if (!savePayload || !Array.isArray(savePayload.entries)) return null;
   const entry = savePayload.entries.find(item => item && item.key === key);
   if (!entry) return false;
   if (expectedValue !== null) {
@@ -452,11 +514,11 @@ function renderToggleGroup(container, definitions) {
     `;
     row.querySelector('input').addEventListener('change', (e) => {
       setKeyPresent(def.key, e.target.checked, expectedValue);
-      updateOverviewAndBadges();
+      scheduleOverviewUpdate();
     });
     container.appendChild(row);
   });
-  updateOverviewAndBadges();
+  scheduleOverviewUpdate();
 }
 
 function renderUnlocks() {
@@ -475,10 +537,10 @@ function renderUnlocks() {
   `;
   endingRow.querySelector('input').addEventListener('change', (e) => {
     setEndingGateUnlocked(e.target.checked);
-    updateOverviewAndBadges();
+    scheduleOverviewUpdate();
   });
   unlocksContainer.appendChild(endingRow);
-  updateOverviewAndBadges();
+  scheduleOverviewUpdate();
 }
 
 // Orb Beacons State Logic
@@ -506,8 +568,14 @@ function applyOrbBeaconState(beacon, mode) {
     savePayload.inventory.push(beacon.orb_id);
   } // 'off' leaves both removed
 
-  renderInventory();
-  renderOrbBeacons();
+  // In-place update corresponding inventory checkbox without rebuilding full DOM
+  if (inventoryContainer) {
+    const invInput = inventoryContainer.querySelector(`input[data-id="${beacon.orb_id}"]`);
+    if (invInput) {
+      invInput.checked = (mode === 'inventory');
+    }
+  }
+  scheduleOverviewUpdate();
 }
 
 function renderOrbBeacons() {
@@ -521,6 +589,7 @@ function renderOrbBeacons() {
     row.className = 'toggle-row';
     const radioName = `beacon_${beacon.coordinate_1}_${beacon.coordinate_2}`;
     const coordText = `(${beacon.coordinate_1}, ${beacon.coordinate_2})`;
+    if (row.setAttribute) row.setAttribute('data-search', `${beacon.coordinate_1}, ${beacon.coordinate_2} ${coordText}`.toLowerCase());
     const labelContent = beacon.link
       ? `<a href="${beacon.link}" target="_blank" rel="noopener noreferrer" class="item-link">${coordText}</a>`
       : `<span>${coordText}</span>`;
@@ -552,7 +621,7 @@ function renderOrbBeacons() {
     orbBeaconsContainer.appendChild(row);
   });
   applySectionFilter("orbBeaconsContainer");
-  updateOverviewAndBadges();
+  scheduleOverviewUpdate();
 }
 
 // Static Light Fixtures Renderer
@@ -567,6 +636,7 @@ function renderLightFixtures() {
     const active = entryVal !== undefined && entryVal !== null && Number(entryVal) === 1;
     const row = document.createElement('div');
     row.className = 'toggle-row';
+    if (row.setAttribute) row.setAttribute('data-search', (fixture.label || '').toLowerCase());
     row.innerHTML = `
       <span>${fixture.label}</span>
       <label class="switch">
@@ -577,13 +647,13 @@ function renderLightFixtures() {
 
     row.querySelector('input').addEventListener('change', (e) => {
       setKeyPresent(fixture.key, e.target.checked, 1);
-      updateOverviewAndBadges();
+      scheduleOverviewUpdate();
     });
 
     lightFixturesContainer.appendChild(row);
   });
   applySectionFilter("lightFixturesContainer");
-  updateOverviewAndBadges();
+  scheduleOverviewUpdate();
 }
 
 // Editable Signs Renderer
@@ -609,18 +679,18 @@ function renderSigns() {
 
     textarea.addEventListener('input', (e) => {
       setStringEntryValue(sign.key, e.target.value);
-      updateOverviewAndBadges();
+      scheduleOverviewUpdate();
     });
 
     clearBtn.addEventListener('click', () => {
       textarea.value = '';
       setStringEntryValue(sign.key, '');
-      updateOverviewAndBadges();
+      scheduleOverviewUpdate();
     });
 
     signsContainer.appendChild(card);
   });
-  updateOverviewAndBadges();
+  scheduleOverviewUpdate();
 }
 
 // Puzzle Tiles State Logic
@@ -640,22 +710,6 @@ function getTileState(tile, entryMap = null, inventorySet = null) {
   return { found: false, mode: 'inventory', slotValue: null };
 }
 
-function getTakenTileSlots(excludeItemId = null, entryMap = null) {
-  const taken = new Set();
-  if (!savePayload || !Array.isArray(savePayload.entries) || typeof TILE_DEFINITIONS === 'undefined' || typeof TILE_SLOTS === 'undefined') {
-    return taken;
-  }
-  const validSlotSet = new Set(TILE_SLOTS.map(s => Number(s.value)));
-  TILE_DEFINITIONS.forEach(t => {
-    if (t.item_id === excludeItemId) return;
-    const val = entryMap ? entryMap.get(t.item_id) : getEntryValue(t.item_id);
-    if (val !== undefined && validSlotSet.has(Number(val))) {
-      taken.add(Number(val));
-    }
-  });
-  return taken;
-}
-
 function applyTileState(tile, isFound, mode, slotValue) {
   const entryIdx = savePayload.entries.findIndex(e => e && e.key === tile.item_id);
   if (entryIdx !== -1) savePayload.entries.splice(entryIdx, 1);
@@ -670,7 +724,12 @@ function applyTileState(tile, isFound, mode, slotValue) {
     }
   }
 
-  renderInventory();
+  if (tile.item_id && inventoryContainer) {
+    const invInput = inventoryContainer.querySelector(`input[data-id="${tile.item_id}"]`);
+    if (invInput) {
+      invInput.checked = (isFound && mode === 'inventory');
+    }
+  }
   renderTiles();
 }
 
@@ -695,12 +754,7 @@ function renderTiles() {
   });
   const allTakenTileSlots = new Set(occupiedTileSlotByItem.values());
 
-  const puzzleGroups = {};
-  TILE_DEFINITIONS.forEach(tile => {
-    const puzzle = tile.puzzle || "Puzzle Tiles";
-    if (!puzzleGroups[puzzle]) puzzleGroups[puzzle] = [];
-    puzzleGroups[puzzle].push(tile);
-  });
+  const puzzleGroups = getTileGroups();
 
   Object.keys(puzzleGroups).forEach(puzzle => {
     const groupEl = document.createElement('div');
@@ -736,6 +790,7 @@ function renderTiles() {
 
       const card = document.createElement('div');
       card.className = 'gourd-card';
+      if (card.setAttribute) card.setAttribute('data-search', `tile ${tile.label || ''} ${puzzle || ''}`.toLowerCase());
       card.innerHTML = `
         <div class="gourd-header">
           <span><strong>Tile ${tile.label}</strong></span>
@@ -782,27 +837,7 @@ function renderTiles() {
     tilesContainer.appendChild(groupEl);
   });
   applySectionFilter("tilesContainer");
-  updateOverviewAndBadges();
-}
-
-function getTakenSlots(excludeGourdKey = null, entryMap = null, inventorySet = null) {
-  const taken = new Set();
-  if (!savePayload || !Array.isArray(savePayload.entries) || typeof GOURD_DEFINITIONS === 'undefined' || typeof GOURD_SLOTS === 'undefined') {
-    return taken;
-  }
-  const validSlotSet = new Set(GOURD_SLOTS.map(s => Number(s.value)));
-  const invSet = inventorySet || new Set(savePayload.inventory || []);
-
-  GOURD_DEFINITIONS.forEach(g => {
-    if (g.key === excludeGourdKey) return;
-    if (g.item_id && invSet.has(g.item_id)) return;
-    const val = entryMap ? entryMap.get(g.key) : getEntryValue(g.key);
-    if (val !== undefined && validSlotSet.has(Number(val))) {
-      taken.add(Number(val));
-    }
-  });
-
-  return taken;
+  scheduleOverviewUpdate();
 }
 
 function getGourdState(gourd, entryMap = null, inventorySet = null) {
@@ -861,7 +896,12 @@ function applyGourdState(gourd, isSolved, mode, slotValue) {
     }
   }
 
-  renderInventory();
+  if (gourd.item_id && inventoryContainer) {
+    const invInput = inventoryContainer.querySelector(`input[data-id="${gourd.item_id}"]`);
+    if (invInput) {
+      invInput.checked = (isSolved && mode === 'inventory');
+    }
+  }
   renderGourds();
 }
 
@@ -883,13 +923,8 @@ function renderGourds() {
   });
   const allTakenSlots = new Set(gourdSlotByKey.values());
 
-  // Group gourds by Area
-  const areaGroups = {};
-  GOURD_DEFINITIONS.forEach(gourd => {
-    const area = gourd.area || "Unknown Area";
-    if (!areaGroups[area]) areaGroups[area] = [];
-    areaGroups[area].push(gourd);
-  });
+  // Group gourds by Area (memoized)
+  const areaGroups = getGourdGroups();
 
   Object.keys(areaGroups).forEach(area => {
     const groupEl = document.createElement('div');
@@ -930,6 +965,7 @@ function renderGourds() {
 
       const card = document.createElement('div');
       card.className = 'gourd-card';
+      if (card.setAttribute) card.setAttribute('data-search', `${gourd.label || ''} ${area || ''}`.toLowerCase());
       card.innerHTML = `
         <div class="gourd-header">
           <span>${labelContent}</span>
@@ -981,7 +1017,7 @@ function renderGourds() {
     gourdsContainer.appendChild(groupEl);
   });
   applySectionFilter("gourdsContainer");
-  updateOverviewAndBadges();
+  scheduleOverviewUpdate();
 }
 
 // Character Colors State Logic
@@ -1092,7 +1128,7 @@ function renderCharacterColors() {
 
     characterColorsContainer.appendChild(card);
   });
-  updateOverviewAndBadges();
+  scheduleOverviewUpdate();
 }
 
 // Grouped Checkbox Inventory Renderer (Always displays all database items)
@@ -1102,13 +1138,7 @@ function renderInventory() {
   if (typeof INVENTORY_DATABASE === 'undefined' || !Array.isArray(INVENTORY_DATABASE)) return;
 
   const { inventorySet } = getIndexMaps();
-
-  const groups = {};
-  INVENTORY_DATABASE.forEach(item => {
-    const type = item.type || "Other";
-    if (!groups[type]) groups[type] = [];
-    groups[type].push(item);
-  });
+  const groups = getInventoryGroups();
 
   Object.keys(groups).forEach(type => {
     const groupEl = document.createElement('div');
@@ -1127,6 +1157,7 @@ function renderInventory() {
 
       const row = document.createElement('label');
       row.className = 'inventory-checkbox-row';
+      if (row.setAttribute) row.setAttribute('data-search', `${item.label || ''} ${type || ''}`.toLowerCase());
       row.innerHTML = `
         <input type="checkbox" data-id="${item.item_id}" ${isChecked ? 'checked' : ''}>
         <span>${item.label}</span>
@@ -1146,7 +1177,7 @@ function renderInventory() {
         renderGourds();
         renderOrbBeacons();
         renderTiles();
-        updateOverviewAndBadges();
+        scheduleOverviewUpdate();
       });
 
       listEl.appendChild(row);
@@ -1156,7 +1187,7 @@ function renderInventory() {
     inventoryContainer.appendChild(groupEl);
   });
   applySectionFilter("inventoryContainer");
-  updateOverviewAndBadges();
+  scheduleOverviewUpdate();
 }
 
 
@@ -1170,8 +1201,8 @@ function applySectionFilter(containerId) {
 
   if (containerId === 'orbBeaconsContainer' || containerId === 'lightFixturesContainer') {
     container.querySelectorAll('.toggle-row').forEach(row => {
-      const text = row.textContent.toLowerCase();
-      const matches = !query || text.includes(query);
+      const searchTarget = (typeof row.getAttribute === 'function' ? row.getAttribute('data-search') : null) || row.textContent.toLowerCase();
+      const matches = !query || searchTarget.includes(query);
       row.classList.toggle('hidden', !matches);
     });
   } else if (containerId === 'gourdsContainer' || containerId === 'tilesContainer') {
@@ -1181,8 +1212,8 @@ function applySectionFilter(containerId) {
       const groupMatches = Boolean(query && title.includes(query));
 
       group.querySelectorAll('.gourd-card').forEach(card => {
-        const text = card.textContent.toLowerCase();
-        const matches = !query || groupMatches || text.includes(query);
+        const searchTarget = (typeof card.getAttribute === 'function' ? card.getAttribute('data-search') : null) || card.textContent.toLowerCase();
+        const matches = !query || groupMatches || searchTarget.includes(query);
         card.classList.toggle('hidden', !matches);
         if (matches) visibleInGroup++;
       });
@@ -1196,8 +1227,8 @@ function applySectionFilter(containerId) {
       const groupMatches = Boolean(query && title.includes(query));
 
       group.querySelectorAll('.inventory-checkbox-row').forEach(row => {
-        const text = row.textContent.toLowerCase();
-        const matches = !query || groupMatches || text.includes(query);
+        const searchTarget = (typeof row.getAttribute === 'function' ? row.getAttribute('data-search') : null) || row.textContent.toLowerCase();
+        const matches = !query || groupMatches || searchTarget.includes(query);
         row.classList.toggle('hidden', !matches);
         if (matches) visibleInGroup++;
       });
@@ -1399,6 +1430,7 @@ function renderStaticMapOverview(rawPayload) {
 
 // Dynamic Overview and Badges for Save Editor Tab
 function updateOverviewAndBadges() {
+  _overviewUpdatePending = false;
   const stats = calculateSaveStats(savePayload);
   if (!stats) return;
 
