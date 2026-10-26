@@ -1230,12 +1230,12 @@ function updateOverviewAndBadges() {
   }
 
   // 7. Lights
-  let lightsLit = 0;
+  let lightsActive = 0;
   const totalLights = typeof LIGHT_FIXTURE_DATABASE !== 'undefined' ? LIGHT_FIXTURE_DATABASE.length : 0;
   if (typeof LIGHT_FIXTURE_DATABASE !== 'undefined') {
     LIGHT_FIXTURE_DATABASE.forEach(light => {
       const val = entryMap.get(light.key);
-      if (Number(val) === 1) lightsLit++;
+      if (Number(val) === 1) lightsActive++;
     });
   }
 
@@ -1276,7 +1276,7 @@ function updateOverviewAndBadges() {
   updateStatCard('statBeacons', 'progBeacons', beaconsActive, totalBeacons);
   updateStatCard('statUnlocks', 'progUnlocks', unlocksCount, totalUnlocks);
   updateStatCard('statRadios', 'progRadios', radiosCount, totalRadios);
-  updateStatCard('statLights', 'progLights', lightsLit, totalLights);
+  updateStatCard('statLights', 'progLights', lightsActive, totalLights);
 
   const statInvEl = document.getElementById('statInventory');
   const progInvEl = document.getElementById('progInventory');
@@ -1301,7 +1301,7 @@ function updateOverviewAndBadges() {
   updateBadge('badgeInventory', invCount === 1 ? '1 Item' : `${invCount} Items`, false);
   updateBadge('badgePlayers', playerCount === 1 ? '1 Player' : `${playerCount} Players`, false);
   updateBadge('badgeBeacons', `${beaconsActive} / ${totalBeacons} Active`, beaconsActive === totalBeacons && totalBeacons > 0);
-  updateBadge('badgeLights', `${lightsLit} / ${totalLights} Lit`, lightsLit === totalLights && totalLights > 0);
+  updateBadge('badgeLights', `${lightsActive} / ${totalLights} Active`, lightsActive === totalLights && totalLights > 0);
   updateBadge('badgeSigns', `${signsWritten} / ${totalSigns} Written`, signsWritten === totalSigns && totalSigns > 0);
   updateBadge('badgeTiles', `${tilesFound} / ${totalTiles} Found`, tilesFound === totalTiles && totalTiles > 0);
 }
