@@ -10,28 +10,60 @@
 <div class="container">
   <h1>Big Walk Save File Editor</h1>
 
-  <div id="dropZone" class="drop-zone">
-    <p>📁 Drag and drop <strong>save_file.sav</strong> here, or click to choose file</p>
-    <div class="path-helper" id="pathHelper">
-      <span>Windows Path:</span>
-      <code id="savePathText">%LOCALAPPDATA%Low\House House\Big Walk\user_data\save_games\</code>
-      <button type="button" class="btn-sm" id="btnCopyPath">📋 Copy</button>
+  <!-- Initial Landing Options: Open Existing File OR Create Brand New File -->
+  <div id="landingScreen" class="landing-grid">
+    <!-- Option 1: Load Existing Save -->
+    <div class="landing-card">
+      <div class="landing-card-header">
+        <h3>📁 Open Existing Save</h3>
+        <p>Upload a <code>.sav</code> file from your Big Walk save folder to edit or analyze it.</p>
+      </div>
+
+      <div id="dropZone" class="drop-zone">
+        <p>Drag and drop <strong>save_file.sav</strong> here, or click to browse</p>
+        <div class="path-helper" id="pathHelper">
+          <span>Windows:</span>
+          <code id="savePathText">%LOCALAPPDATA%Low\House House\Big Walk\user_data\save_games\</code>
+          <button type="button" class="btn-sm" id="btnCopyPath">📋 Copy</button>
+        </div>
+        <input type="file" id="fileInput" class="hidden" accept=".sav,.json">
+      </div>
     </div>
-    <input type="file" id="fileInput" class="hidden" accept=".sav,.json">
+
+    <!-- Option 2: Create Brand New Save -->
+    <div class="landing-card">
+      <div class="landing-card-header">
+        <h3>✨ Create Brand New Save</h3>
+        <p>Start a fresh save file from scratch with a randomized world seed and unique UID.</p>
+      </div>
+
+      <div class="new-save-box">
+        <div class="form-group">
+          <label for="newSlotNameInput">Save Slot Name</label>
+          <input type="text" id="newSlotNameInput" class="new-slot-input" placeholder="e.g. One, Two, Three, MySave..." value="" maxlength="32">
+          <span class="form-hint">Matches the save slot name in Big Walk (e.g. "BigEdit1")</span>
+        </div>
+
+        <button type="button" id="btnCreateNewSave" class="btn btn-create-save">
+          ✨ Create New Save File
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- Navigation Tabs (Visible once a file is loaded) -->
+  <!-- Navigation Tabs (Visible once a file is loaded or created) -->
   <div id="appTabs" class="tab-nav hidden">
     <div class="tab-group">
       <button type="button" class="tab-btn active" id="tabBtnEditor" data-tab="editorContent">
         ✏️ Save Editor
       </button>
-      <button type="button" class="tab-btn" id="tabBtnMap" data-tab="mapSection">
+      <button type="button" class="tab-btn" id="tabBtnMap" data-tab="mapSection" title="Route Map & Analysis">
         🗺️ Route Map & Analysis
       </button>
     </div>
     <div class="tab-nav-right">
-      <button type="button" class="btn-sm" id="btnChangeFile" title="Load a different save file">📁 Change Save</button>
+      <button type="button" class="btn-sm" id="btnChangeFile" title="Open an existing save file">📁 Open File</button>
+      <button type="button" class="btn-sm" id="btnNewSaveHeader" title="Create a new save file">✨ New Save</button>
     </div>
   </div>
 

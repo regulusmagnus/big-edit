@@ -24,6 +24,7 @@ Note: House House states that there is not canon terminology for the various thi
 - Edit in-game sign text
 - Add puzzle tiles to inventory/Lost & Found toggles, or place them at Tile Thief
 - A save file analyzer that plots the order you encountered various things and shows where you placed your gourds
+- Option to create a new save file with random UID/world seed
 
 ## To Do
 

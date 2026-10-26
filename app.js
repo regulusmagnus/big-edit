@@ -230,6 +230,74 @@ dropZone.ondrop = (e) => {
   if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
 };
 
+// 16-character hexadecimal filenameUid (truncated UUID v4: Guid.NewGuid().ToString("N").Substring(0, 16))
+function generateFilenameUid() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID().replace(/-/g, '').substring(0, 16).toLowerCase();
+  }
+  let hex = '';
+  for (let i = 0; i < 16; i++) {
+    hex += Math.floor(Math.random() * 16).toString(16);
+  }
+  return hex.toLowerCase();
+}
+
+// 32-bit signed integer worldSeed (-2147483648 to 2147483647)
+function generateWorldSeed() {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const buf = new Int32Array(1);
+    crypto.getRandomValues(buf);
+    return buf[0];
+  }
+  return (Math.floor(Math.random() * 0x100000000) | 0);
+}
+
+function createNewSave(desiredSlotName) {
+  const slotName = (desiredSlotName || '').trim() || 'BigEdit1';
+  const filenameUid = generateFilenameUid();
+  const worldSeed = generateWorldSeed();
+
+  savePayload = {
+    slotName: slotName,
+    password: "password",
+    filenameUid: filenameUid,
+    lastPlayedTimeAsLong: 639279506739870596,
+    skipAidsActive: true,
+    totalPlaytime: 0,
+    entries: [
+      { key: "worldSeed", value: worldSeed },
+      { key: "EndingGate", value: 1 }
+    ],
+    stringEntries: [],
+    inventory: []
+  };
+  window.savePayload = savePayload;
+  window.rawSavePayload = null; // No raw initial save file for scratch save
+
+  loadedFileName = `save_${slotName}_${filenameUid}.sav`;
+
+  // Render Save Editor UI with new empty save
+  renderUI();
+
+  // Hide Landing Screen and Show Tab Bar
+  const landingScreen = document.getElementById('landingScreen');
+  if (landingScreen) landingScreen.classList.add('hidden');
+  const dropZone = document.getElementById('dropZone');
+  if (dropZone) dropZone.classList.add('hidden');
+  const appTabs = document.getElementById('appTabs');
+  if (appTabs) appTabs.classList.remove('hidden');
+
+  // Disable Map Tab because there is no original save data to analyze
+  const tabBtnMap = document.getElementById('tabBtnMap');
+  if (tabBtnMap) {
+    tabBtnMap.disabled = true;
+    tabBtnMap.title = "Route map analysis is not available for new saves created from scratch";
+  }
+
+  // Ensure Editor Tab is active
+  switchTab('editorContent');
+}
+
 function loadFile(file) {
   if (!file) return;
   loadedFileName = file.name;
@@ -246,11 +314,22 @@ function loadFile(file) {
 
       renderStaticMapOverview(window.rawSavePayload);
       renderUI();
-      dropZone.classList.add('hidden');
+
+      const landingScreen = document.getElementById('landingScreen');
+      if (landingScreen) landingScreen.classList.add('hidden');
+      const dropZone = document.getElementById('dropZone');
+      if (dropZone) dropZone.classList.add('hidden');
       const appTabs = document.getElementById('appTabs');
       if (appTabs) appTabs.classList.remove('hidden');
-      switchTab('editorContent');
 
+      // Re-enable Map Tab for loaded save files
+      const tabBtnMap = document.getElementById('tabBtnMap');
+      if (tabBtnMap) {
+        tabBtnMap.disabled = false;
+        tabBtnMap.title = "Route Map & Analysis";
+      }
+
+      switchTab('editorContent');
       window.dispatchEvent(new CustomEvent('saveFileLoaded'));
     } catch (err) {
       alert("Could not parse file. Please upload a valid Big Walk save file.");
@@ -1387,6 +1466,8 @@ function switchTab(tabId) {
   const mapSection = document.getElementById('mapSection');
 
   if (tabId === 'mapSection') {
+    // If Map tab is disabled (e.g. brand new save from scratch), ignore switch
+    if (tabBtnMap && tabBtnMap.disabled) return;
     if (tabBtnEditor) tabBtnEditor.classList.remove('active');
     if (tabBtnMap) tabBtnMap.classList.add('active');
     if (editorContent) editorContent.classList.add('hidden');
@@ -1405,10 +1486,13 @@ function switchTab(tabId) {
   }
 }
 
-// Tab Navigation Event Bindings
+// Tab Navigation & New Save Event Bindings
 const tabBtnEditor = document.getElementById('tabBtnEditor');
 const tabBtnMap = document.getElementById('tabBtnMap');
 const btnChangeFile = document.getElementById('btnChangeFile');
+const btnNewSaveHeader = document.getElementById('btnNewSaveHeader');
+const btnCreateNewSave = document.getElementById('btnCreateNewSave');
+const newSlotNameInput = document.getElementById('newSlotNameInput');
 
 if (tabBtnEditor) tabBtnEditor.onclick = () => switchTab('editorContent');
 if (tabBtnMap) tabBtnMap.onclick = () => switchTab('mapSection');
@@ -1416,6 +1500,27 @@ if (btnChangeFile) {
   btnChangeFile.onclick = () => {
     if (fileInput) fileInput.click();
   };
+}
+if (btnNewSaveHeader) {
+  btnNewSaveHeader.onclick = () => {
+    const slotName = prompt("Enter slot name for brand new save:", "BigEdit1");
+    if (slotName !== null) {
+      createNewSave(slotName);
+    }
+  };
+}
+if (btnCreateNewSave) {
+  btnCreateNewSave.onclick = () => {
+    const slotName = newSlotNameInput ? newSlotNameInput.value : 'BigEdit1';
+    createNewSave(slotName);
+  };
+}
+if (newSlotNameInput && newSlotNameInput.addEventListener) {
+  newSlotNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      createNewSave(newSlotNameInput.value);
+    }
+  });
 }
 
 // Global Expand / Collapse All
