@@ -342,7 +342,7 @@ function loadFile(file) {
       const tabBtnMap = document.getElementById('tabBtnMap');
       if (tabBtnMap) {
         tabBtnMap.disabled = false;
-        tabBtnMap.title = "Route Map & Analysis";
+        tabBtnMap.title = "Route Map";
       }
 
       switchTab('editorContent');
