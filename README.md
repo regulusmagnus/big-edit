@@ -27,6 +27,10 @@ Note: House House states that there is not canon terminology for the various thi
 - Option to create a new save file with random UID/world seed
 - A puzzle solution predictor tab that calculates the exact tile solutions for Tile Thief and Optical Telegraph directly from your save's worldSeed
 
+## To Do
+
+- Add audio snippets for Tile Thief solution
+- Add feature to automatically apply the Tile Thief solution to the save file
 
 ### Fun Facts
 
