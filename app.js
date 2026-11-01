@@ -1485,7 +1485,7 @@ function updateOverviewAndBadges() {
   updateBadge('badgeInventory', stats.invCount === 1 ? '1 Item' : `${stats.invCount} Items`, false);
   updateBadge('badgePlayers', stats.playerCount === 1 ? '1 Player' : `${stats.playerCount} Players`, false);
   updateBadge('badgeBeacons', `${stats.beaconsActive} / ${stats.totalBeacons} Active`, stats.beaconsActive === stats.totalBeacons && stats.totalBeacons > 0);
-  updateBadge('badgeLights', `${stats.lightsActive} / ${stats.totalLights} Lit`, stats.lightsActive === stats.totalLights && stats.totalLights > 0);
+  updateBadge('badgeLights', `${stats.lightsActive} / ${stats.totalLights} Active`, stats.lightsActive === stats.totalLights && stats.totalLights > 0);
   updateBadge('badgeSigns', `${stats.signsWritten} / ${stats.totalSigns} Written`, stats.signsWritten === stats.totalSigns && stats.totalSigns > 0);
   updateBadge('badgeTiles', `${stats.tilesFound} / ${stats.totalTiles} Found`, stats.tilesFound === stats.totalTiles && stats.totalTiles > 0);
 }
