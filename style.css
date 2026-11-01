@@ -975,3 +975,258 @@ input:checked + .slider:before { transform: translateX(20px); }
 .section-filter-input::-webkit-search-cancel-button {
   cursor: pointer;
 }
+
+/* ==========================================================================
+   Puzzle Solutions Tab Styles
+   ========================================================================== */
+#puzzlesSection {
+  animation: fadeIn 0.15s ease;
+}
+
+.puzzle-seed-card {
+  margin-bottom: 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.puzzle-seed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.puzzle-seed-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.35rem 0;
+}
+
+.puzzle-seed-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 620px;
+  line-height: 1.45;
+}
+
+.puzzle-seed-desc code {
+  background: #121216;
+  border: 1px solid #2e2e38;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  color: var(--accent);
+  font-family: ui-monospace, monospace;
+}
+
+.puzzle-seed-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.puzzle-seed-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.puzzle-seed-input-wrapper label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.puzzle-seed-input {
+  background: #121216;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  width: 170px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.puzzle-seed-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.puzzle-seed-status {
+  margin-top: 0.85rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #24242c;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.puzzle-seed-status strong {
+  color: var(--text);
+  font-family: ui-monospace, monospace;
+}
+
+/* Puzzle Cards Grid */
+.puzzle-solutions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.puzzle-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.puzzle-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.puzzle-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.puzzle-icon {
+  font-size: 1.85rem;
+  line-height: 1;
+}
+
+.puzzle-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.puzzle-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
+}
+
+.puzzle-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
+}
+
+.puzzle-description {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.puzzle-solution-box {
+  background: #121216;
+  border: 1px solid #282832;
+  border-radius: 8px;
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.puzzle-digits-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.puzzle-digits-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.solution-digits {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  background: #1e1e28;
+  padding: 0.3rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid #353545;
+  min-width: 90px;
+  text-align: center;
+  display: inline-block;
+}
+
+.btn-copy-solution {
+  font-weight: 600;
+}
+
+/* Slots Breakdown Chips */
+.puzzle-slots-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
+  gap: 0.5rem;
+}
+
+.puzzle-slot-chip {
+  background: #131318;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.35rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.chip-slot-num {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chip-tile-val {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: ui-monospace, monospace;
+}
+
+/* Secondary Details (Fish Trap) */
+.puzzle-secondary-details {
+  margin-top: 1rem;
+}
+
+.puzzle-secondary-body {
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

@@ -279,6 +279,14 @@ function createNewSave(desiredSlotName) {
   // Render Save Editor UI with new empty save
   renderUI();
 
+  // Sync Puzzle Solutions with new save worldSeed
+  const newSeed = getCurrentSaveWorldSeed();
+  const puzzleSeedInput = document.getElementById('puzzleWorldSeedInput');
+  if (puzzleSeedInput && newSeed !== null) {
+    puzzleSeedInput.value = newSeed;
+  }
+  renderPuzzleSolutions(newSeed);
+
   // Hide Landing Screen and Show Tab Bar
   const landingScreen = document.getElementById('landingScreen');
   if (landingScreen) landingScreen.classList.add('hidden');
@@ -314,6 +322,14 @@ function loadFile(file) {
 
       renderStaticMapOverview(window.rawSavePayload);
       renderUI();
+
+      // Sync Puzzle Solutions with loaded save worldSeed
+      const loadedSeed = getCurrentSaveWorldSeed();
+      const puzzleSeedInput = document.getElementById('puzzleWorldSeedInput');
+      if (puzzleSeedInput && loadedSeed !== null) {
+        puzzleSeedInput.value = loadedSeed;
+      }
+      renderPuzzleSolutions(loadedSeed);
 
       const landingScreen = document.getElementById('landingScreen');
       if (landingScreen) landingScreen.classList.add('hidden');
@@ -1490,19 +1506,136 @@ function updateOverviewAndBadges() {
   updateBadge('badgeTiles', `${stats.tilesFound} / ${stats.totalTiles} Found`, stats.tilesFound === stats.totalTiles && stats.totalTiles > 0);
 }
 
+// Helper to get active save worldSeed
+function getCurrentSaveWorldSeed() {
+  if (!savePayload) return null;
+  if (Array.isArray(savePayload.entries)) {
+    const entry = savePayload.entries.find(e => e && e.key === 'worldSeed');
+    if (entry && entry.value !== undefined && entry.value !== null) {
+      return Number(entry.value);
+    }
+  }
+  if (savePayload.worldSeed !== undefined && savePayload.worldSeed !== null) {
+    return Number(savePayload.worldSeed);
+  }
+  return null;
+}
+
+// Resolver for BigWalkPuzzles library (from tiles-from-worldseed.js)
+function getPuzzleSolver() {
+  if (typeof BigWalkPuzzles !== 'undefined') return BigWalkPuzzles;
+  if (typeof window !== 'undefined' && window.BigWalkPuzzles) return window.BigWalkPuzzles;
+  return null;
+}
+
+// Puzzle Solutions Renderer (Calculates Tile Thief and Optical Telegraph from worldSeed)
+function renderPuzzleSolutions(customSeed = null) {
+  const solver = getPuzzleSolver();
+  const inputEl = document.getElementById('puzzleWorldSeedInput');
+  const activeSaveSeedEl = document.getElementById('puzzleActiveSaveSeed');
+  const ttResEl = document.getElementById('tileThiefRes');
+  const otResEl = document.getElementById('opticalTelegraphRes');
+  const bfResEl = document.getElementById('blindfoldFishTrapRes');
+  const ttSlotsEl = document.getElementById('tileThiefSlots');
+  const otSlotsEl = document.getElementById('opticalTelegraphSlots');
+  const bfSlotsEl = document.getElementById('blindfoldFishTrapSlots');
+
+  const saveSeed = getCurrentSaveWorldSeed();
+  if (activeSaveSeedEl) {
+    activeSaveSeedEl.textContent = (saveSeed !== null && saveSeed !== undefined) ? saveSeed : '— (No Save Loaded)';
+  }
+
+  // Determine effective seed to calculate
+  let effectiveSeed = customSeed;
+  if (effectiveSeed === null || effectiveSeed === undefined) {
+    if (inputEl && inputEl.value !== undefined && String(inputEl.value).trim() !== '') {
+      effectiveSeed = inputEl.value;
+    } else if (saveSeed !== null && saveSeed !== undefined) {
+      effectiveSeed = saveSeed;
+      if (inputEl) inputEl.value = saveSeed;
+    } else {
+      effectiveSeed = 0;
+      if (inputEl) inputEl.value = 0;
+    }
+  }
+
+  const numSeed = Number(effectiveSeed);
+  if (isNaN(numSeed) || !isFinite(numSeed) || !solver) {
+    if (ttResEl) ttResEl.textContent = '----';
+    if (otResEl) otResEl.textContent = '-----';
+    if (bfResEl) bfResEl.textContent = '---';
+    if (ttSlotsEl) ttSlotsEl.innerHTML = '';
+    if (otSlotsEl) otSlotsEl.innerHTML = '';
+    if (bfSlotsEl) bfSlotsEl.innerHTML = '';
+    return;
+  }
+
+  try {
+    const results = solver.solveAll(numSeed);
+    if (ttResEl) ttResEl.textContent = results.tileThief;
+    if (otResEl) otResEl.textContent = results.opticalTelegraph;
+    if (bfResEl) bfResEl.textContent = results.blindfoldFishTrap;
+
+    // Render Tile Thief Slot Chips (4 slots)
+    if (ttSlotsEl) {
+      ttSlotsEl.innerHTML = results.tileThief.split('').map((digit, idx) => `
+        <div class="puzzle-slot-chip">
+          <span class="chip-slot-num">Slot ${idx + 1}</span>
+          <span class="chip-tile-val">Tile ${digit}</span>
+        </div>
+      `).join('');
+    }
+
+    // Render Optical Telegraph Slot Chips (5 slots)
+    if (otSlotsEl) {
+      otSlotsEl.innerHTML = results.opticalTelegraph.split('').map((digit, idx) => `
+        <div class="puzzle-slot-chip">
+          <span class="chip-slot-num">Slot ${idx + 1}</span>
+          <span class="chip-tile-val">Tile ${digit}</span>
+        </div>
+      `).join('');
+    }
+
+    // Render Fish Trap Slot Chips (3 slots)
+    if (bfSlotsEl) {
+      bfSlotsEl.innerHTML = results.blindfoldFishTrap.split('').map((digit, idx) => `
+        <div class="puzzle-slot-chip">
+          <span class="chip-slot-num">Slot ${idx + 1}</span>
+          <span class="chip-tile-val">Tile ${digit}</span>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    console.error('Failed to solve puzzles for seed:', numSeed, err);
+  }
+}
+
 // Tab Switching Controller
 function switchTab(tabId) {
   const tabBtnEditor = document.getElementById('tabBtnEditor');
   const tabBtnMap = document.getElementById('tabBtnMap');
+  const tabBtnPuzzles = document.getElementById('tabBtnPuzzles');
   const editorContent = document.getElementById('editorContent');
   const mapSection = document.getElementById('mapSection');
+  const puzzlesSection = document.getElementById('puzzlesSection');
 
   if (tabId === 'mapSection') {
     // If Map tab is disabled (e.g. brand new save from scratch), ignore switch
     if (tabBtnMap && tabBtnMap.disabled) return;
-    if (tabBtnEditor) tabBtnEditor.classList.remove('active');
+  }
+
+  // Deactivate all tab buttons
+  if (tabBtnEditor) tabBtnEditor.classList.remove('active');
+  if (tabBtnMap) tabBtnMap.classList.remove('active');
+  if (tabBtnPuzzles) tabBtnPuzzles.classList.remove('active');
+
+  // Hide all tab panes
+  if (editorContent) editorContent.classList.add('hidden');
+  if (mapSection) mapSection.classList.add('hidden');
+  if (puzzlesSection) puzzlesSection.classList.add('hidden');
+
+  if (tabId === 'mapSection') {
     if (tabBtnMap) tabBtnMap.classList.add('active');
-    if (editorContent) editorContent.classList.add('hidden');
     if (mapSection) mapSection.classList.remove('hidden');
 
     // Refit SVG map once container is visible
@@ -1510,10 +1643,12 @@ function switchTab(tabId) {
       const btnFitMap = document.getElementById('btnFitMap');
       if (btnFitMap) btnFitMap.click();
     }, 50);
+  } else if (tabId === 'puzzlesSection') {
+    if (tabBtnPuzzles) tabBtnPuzzles.classList.add('active');
+    if (puzzlesSection) puzzlesSection.classList.remove('hidden');
+    renderPuzzleSolutions();
   } else {
-    if (tabBtnMap) tabBtnMap.classList.remove('active');
     if (tabBtnEditor) tabBtnEditor.classList.add('active');
-    if (mapSection) mapSection.classList.add('hidden');
     if (editorContent) editorContent.classList.remove('hidden');
   }
 }
@@ -1521,6 +1656,7 @@ function switchTab(tabId) {
 // Tab Navigation & New Save Event Bindings
 const tabBtnEditor = document.getElementById('tabBtnEditor');
 const tabBtnMap = document.getElementById('tabBtnMap');
+const tabBtnPuzzles = document.getElementById('tabBtnPuzzles');
 const btnChangeFile = document.getElementById('btnChangeFile');
 const btnNewSaveHeader = document.getElementById('btnNewSaveHeader');
 const btnCreateNewSave = document.getElementById('btnCreateNewSave');
@@ -1528,6 +1664,55 @@ const newSlotNameInput = document.getElementById('newSlotNameInput');
 
 if (tabBtnEditor) tabBtnEditor.onclick = () => switchTab('editorContent');
 if (tabBtnMap) tabBtnMap.onclick = () => switchTab('mapSection');
+if (tabBtnPuzzles) tabBtnPuzzles.onclick = () => switchTab('puzzlesSection');
+
+// Puzzle Solutions Tab Event Handlers
+const puzzleWorldSeedInput = document.getElementById('puzzleWorldSeedInput');
+if (puzzleWorldSeedInput && puzzleWorldSeedInput.addEventListener) {
+  puzzleWorldSeedInput.addEventListener('input', (e) => {
+    const val = e.target.value;
+    renderPuzzleSolutions(val.trim() === '' ? '' : Number(val));
+  });
+}
+
+const btnResetPuzzleSeed = document.getElementById('btnResetPuzzleSeed');
+if (btnResetPuzzleSeed) {
+  btnResetPuzzleSeed.onclick = () => {
+    const saveSeed = getCurrentSaveWorldSeed();
+    const input = document.getElementById('puzzleWorldSeedInput');
+    if (saveSeed !== null && saveSeed !== undefined) {
+      if (input) input.value = saveSeed;
+      renderPuzzleSolutions(saveSeed);
+    } else {
+      if (input) input.value = 0;
+      renderPuzzleSolutions(0);
+    }
+  };
+}
+
+const btnRandomPuzzleSeed = document.getElementById('btnRandomPuzzleSeed');
+if (btnRandomPuzzleSeed) {
+  btnRandomPuzzleSeed.onclick = () => {
+    const randSeed = generateWorldSeed();
+    const input = document.getElementById('puzzleWorldSeedInput');
+    if (input) input.value = randSeed;
+    renderPuzzleSolutions(randSeed);
+  };
+}
+
+if (typeof document !== 'undefined' && document.querySelectorAll) document.querySelectorAll('.btn-copy-solution').forEach(btn => {
+  btn.onclick = () => {
+    const targetId = btn.getAttribute('data-target');
+    const targetEl = document.getElementById(targetId);
+    if (targetEl && targetEl.textContent && !targetEl.textContent.includes('-')) {
+      navigator.clipboard.writeText(targetEl.textContent.trim()).then(() => {
+        const origText = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => { btn.textContent = origText; }, 1800);
+      });
+    }
+  };
+});
 if (btnChangeFile) {
   btnChangeFile.onclick = () => {
     if (fileInput) fileInput.click();

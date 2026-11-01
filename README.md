@@ -25,10 +25,8 @@ Note: House House states that there is not canon terminology for the various thi
 - Add puzzle tiles to inventory/Lost & Found toggles, or place them at Tile Thief
 - A save file analyzer that plots the order you encountered various things and shows where you placed your gourds
 - Option to create a new save file with random UID/world seed
+- A puzzle solution predictor tab that calculates the exact tile solutions for Tile Thief and Optical Telegraph directly from your save's worldSeed
 
-## To Do
-
-- Add puzzle solver for OpticalTelegraph and TileThief based on worldSeed
 
 ### Fun Facts
 

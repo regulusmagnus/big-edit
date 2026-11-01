@@ -60,6 +60,9 @@
       <button type="button" class="tab-btn" id="tabBtnMap" data-tab="mapSection" title="Route Map & Analysis">
         🗺️ Route Map & Analysis
       </button>
+      <button type="button" class="tab-btn" id="tabBtnPuzzles" data-tab="puzzlesSection" title="Puzzle Solutions">
+        🧩 Puzzle Solutions
+      </button>
     </div>
     <div class="tab-nav-right">
       <button type="button" class="btn-sm" id="btnChangeFile" title="Open an existing save file">📁 Open File</button>
@@ -427,11 +430,131 @@
     </div>
   </div>
 
+  <!-- Tab 3: Puzzle Solutions (Calculated from worldSeed) -->
+  <div id="puzzlesSection" class="tab-pane hidden">
+    <div class="action-header">
+      <h2>Puzzle Solutions</h2>
+      <span class="readonly-badge">🧩 Seed-Based Sequence Prediction</span>
+    </div>
+
+    <!-- Seed Info & Interactive Input Card -->
+    <div class="card overview-card puzzle-seed-card">
+      <div class="puzzle-seed-header">
+        <div>
+          <h3 class="puzzle-seed-title">World Seed Configuration</h3>
+          <p class="puzzle-seed-desc">
+            The required tile combinations for <strong>Tile Thief</strong> and <strong>Optical Telegraph</strong> are determined exclusively by your save file's <code>worldSeed</code>.
+          </p>
+        </div>
+        <div class="puzzle-seed-controls">
+          <div class="puzzle-seed-input-wrapper">
+            <label for="puzzleWorldSeedInput">worldSeed</label>
+            <input type="number" id="puzzleWorldSeedInput" class="puzzle-seed-input" placeholder="e.g. 1071430181" value="0">
+          </div>
+          <button type="button" class="btn-sm" id="btnResetPuzzleSeed" title="Reset seed input to current save file seed">↺ Save Seed</button>
+          <button type="button" class="btn-sm" id="btnRandomPuzzleSeed" title="Generate random 32-bit seed">🎲 Random Seed</button>
+        </div>
+      </div>
+      <div class="puzzle-seed-status">
+        Active Save Seed: <strong id="puzzleActiveSaveSeed">—</strong>
+      </div>
+    </div>
+
+    <!-- Two Main Puzzle Cards -->
+    <div class="puzzle-solutions-grid">
+      <!-- Puzzle 1: Tile Thief -->
+      <div class="card puzzle-card">
+        <div class="puzzle-card-header">
+          <div class="puzzle-card-title-group">
+            <span class="puzzle-icon">🪟</span>
+            <div>
+              <h3 class="puzzle-name">Tile Thief</h3>
+              <span class="puzzle-subtitle">In-Game: Teller Window &bull; saveSeed = 5</span>
+            </div>
+          </div>
+          <span class="puzzle-badge">4 Slots</span>
+        </div>
+
+        <p class="puzzle-description">
+          4 numbered tiles placed in sequence. Slots 1–3 permit duplicate symbols; Slot 4 redraws if matching Slot 1's symbol.
+        </p>
+
+        <div class="puzzle-solution-box">
+          <div class="puzzle-digits-group">
+            <span class="puzzle-digits-label">Solution:</span>
+            <span class="solution-digits" id="tileThiefRes">----</span>
+          </div>
+          <button type="button" class="btn-sm btn-copy-solution" id="btnCopyTileThief" data-target="tileThiefRes" title="Copy 4-digit code to clipboard">📋 Copy</button>
+        </div>
+
+        <!-- Individual Slot Breakdown Chips -->
+        <div class="puzzle-slots-breakdown" id="tileThiefSlots">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Puzzle 2: Optical Telegraph -->
+      <div class="card puzzle-card">
+        <div class="puzzle-card-header">
+          <div class="puzzle-card-title-group">
+            <span class="puzzle-icon">🗼</span>
+            <div>
+              <h3 class="puzzle-name">Optical Telegraph</h3>
+              <span class="puzzle-subtitle">In-Game: Coastal Observation Tower &bull; saveSeed = 2</span>
+            </div>
+          </div>
+          <span class="puzzle-badge">5 Slots</span>
+        </div>
+
+        <p class="puzzle-description">
+          5 unique numbered tiles placed in sequence without any repeats across all slots.
+        </p>
+
+        <div class="puzzle-solution-box">
+          <div class="puzzle-digits-group">
+            <span class="puzzle-digits-label">Solution:</span>
+            <span class="solution-digits" id="opticalTelegraphRes">-----</span>
+          </div>
+          <button type="button" class="btn-sm btn-copy-solution" id="btnCopyOpticalTelegraph" data-target="opticalTelegraphRes" title="Copy 5-digit code to clipboard">📋 Copy</button>
+        </div>
+
+        <!-- Individual Slot Breakdown Chips -->
+        <div class="puzzle-slots-breakdown" id="opticalTelegraphSlots">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary Collapsible: Blindfold Fish Trap -->
+    <details class="card puzzle-secondary-details">
+      <summary>
+        <span class="summary-title">🐟 Additional Seeded Secret: Blindfold Fish Trap</span>
+        <span class="summary-badge">saveSeed = 1946 &bull; 3 Slots</span>
+      </summary>
+      <div class="puzzle-secondary-body">
+        <p class="puzzle-description">
+          3-slot sequence without repeats for the Blindfold Fish Trap secret.
+        </p>
+        <div class="puzzle-solution-box">
+          <div class="puzzle-digits-group">
+            <span class="puzzle-digits-label">Solution:</span>
+            <span class="solution-digits" id="blindfoldFishTrapRes">---</span>
+          </div>
+          <button type="button" class="btn-sm btn-copy-solution" id="btnCopyFishTrap" data-target="blindfoldFishTrapRes" title="Copy 3-digit code to clipboard">📋 Copy</button>
+        </div>
+        <div class="puzzle-slots-breakdown" id="blindfoldFishTrapSlots">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </details>
+  </div>
+
 </div>
 
 <!-- Scripts -->
 <script src="database.js"></script>
 <script src="coordinates.js"></script>
+<script src="tiles-from-worldseed.js"></script>
 <script src="app.js"></script>
 <script src="map.js"></script>
 </body>
