@@ -28,8 +28,7 @@ Note: House House states that there is not canon terminology for the various thi
 
 ## To Do
 
-- All done! Just big fixes and minor tweaks when needed.
-- Open to suggestions!
+- Add puzzle solver for OpticalTelegraph and TileThief based on worldSeed
 
 ### Fun Facts
 
