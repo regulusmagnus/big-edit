@@ -1535,10 +1535,8 @@ function renderPuzzleSolutions(customSeed = null) {
   const activeSaveSeedEl = document.getElementById('puzzleActiveSaveSeed');
   const ttResEl = document.getElementById('tileThiefRes');
   const otResEl = document.getElementById('opticalTelegraphRes');
-  const bfResEl = document.getElementById('blindfoldFishTrapRes');
   const ttSlotsEl = document.getElementById('tileThiefSlots');
   const otSlotsEl = document.getElementById('opticalTelegraphSlots');
-  const bfSlotsEl = document.getElementById('blindfoldFishTrapSlots');
 
   const saveSeed = getCurrentSaveWorldSeed();
   if (activeSaveSeedEl) {
@@ -1563,44 +1561,54 @@ function renderPuzzleSolutions(customSeed = null) {
   if (isNaN(numSeed) || !isFinite(numSeed) || !solver) {
     if (ttResEl) ttResEl.textContent = '----';
     if (otResEl) otResEl.textContent = '-----';
-    if (bfResEl) bfResEl.textContent = '---';
     if (ttSlotsEl) ttSlotsEl.innerHTML = '';
     if (otSlotsEl) otSlotsEl.innerHTML = '';
-    if (bfSlotsEl) bfSlotsEl.innerHTML = '';
     return;
   }
 
   try {
-    const results = solver.solveAll(numSeed);
-    if (ttResEl) ttResEl.textContent = results.tileThief;
-    if (otResEl) otResEl.textContent = results.opticalTelegraph;
-    if (bfResEl) bfResEl.textContent = results.blindfoldFishTrap;
+    const tileThiefSol = typeof solver.solveTileThief === 'function'
+      ? solver.solveTileThief(numSeed)
+      : solver.solveAll(numSeed).tileThief;
+    const opticalTelegraphSol = typeof solver.solveOpticalTelegraph === 'function'
+      ? solver.solveOpticalTelegraph(numSeed)
+      : solver.solveAll(numSeed).opticalTelegraph;
+
+    if (ttResEl) ttResEl.textContent = tileThiefSol;
+    if (otResEl) otResEl.textContent = opticalTelegraphSol;
 
     // Render Tile Thief Slot Chips (4 slots)
+    // Slot 1: symbols, Slot 2: squiggles, Slot 3: poses, Slot 4: skip for now (leave in "Tile X")
     if (ttSlotsEl) {
-      ttSlotsEl.innerHTML = results.tileThief.split('').map((digit, idx) => `
-        <div class="puzzle-slot-chip">
-          <span class="chip-slot-num">Slot ${idx + 1}</span>
-          <span class="chip-tile-val">Tile ${digit}</span>
-        </div>
-      `).join('');
+      const tileThiefFolders = ['symbols', 'squiggles', 'poses', null];
+      ttSlotsEl.innerHTML = tileThiefSol.split('').map((digit, idx) => {
+        const folder = tileThiefFolders[idx];
+        const imgBlock = folder
+          ? `<div class="chip-img-container">
+               <img src="assets/${folder}/${digit}.png" alt="Tile ${digit}" class="puzzle-tile-img" title="Tile ${digit}">
+             </div>`
+          : `<div class="chip-img-container chip-placeholder-container" title="Image coming soon">
+               <span class="placeholder-dash">—</span>
+             </div>`;
+        return `
+          <div class="puzzle-slot-chip">
+            <span class="chip-slot-num">Slot ${idx + 1}</span>
+            ${imgBlock}
+            <span class="chip-tile-val">Tile ${digit}</span>
+          </div>
+        `;
+      }).join('');
     }
 
     // Render Optical Telegraph Slot Chips (5 slots)
+    // All 5 slots use "poses" images
     if (otSlotsEl) {
-      otSlotsEl.innerHTML = results.opticalTelegraph.split('').map((digit, idx) => `
+      otSlotsEl.innerHTML = opticalTelegraphSol.split('').map((digit, idx) => `
         <div class="puzzle-slot-chip">
           <span class="chip-slot-num">Slot ${idx + 1}</span>
-          <span class="chip-tile-val">Tile ${digit}</span>
-        </div>
-      `).join('');
-    }
-
-    // Render Fish Trap Slot Chips (3 slots)
-    if (bfSlotsEl) {
-      bfSlotsEl.innerHTML = results.blindfoldFishTrap.split('').map((digit, idx) => `
-        <div class="puzzle-slot-chip">
-          <span class="chip-slot-num">Slot ${idx + 1}</span>
+          <div class="chip-img-container">
+            <img src="assets/poses/${digit}.png" alt="Tile ${digit}" class="puzzle-tile-img" title="Tile ${digit}">
+          </div>
           <span class="chip-tile-val">Tile ${digit}</span>
         </div>
       `).join('');
