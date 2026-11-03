@@ -1247,3 +1247,51 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 
 
+
+/* Audio Tile (Tile Thief Slot 4) */
+.puzzle-audio-chip {
+  cursor: pointer;
+}
+
+.chip-audio-container {
+  cursor: pointer;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.puzzle-audio-chip:hover .chip-audio-container,
+.chip-audio-container:hover {
+  background: #ffffff;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.audio-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #1e293b;
+  margin-left: 3px;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.chip-audio-container.playing {
+  background: #ecfdf5;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4), 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.chip-audio-container.playing .audio-icon {
+  color: var(--accent);
+  margin-left: 0;
+  animation: pulseAudio 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseAudio {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}

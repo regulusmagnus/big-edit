@@ -76,7 +76,7 @@ const btnAllTilesInventory = document.getElementById('btnAllTilesInventory');
 
 // Copy save file path to clipboard
 function copySavePath(e) {
-  if (e) e.stopPropagation();
+  if (e) if (e && e.stopPropagation) e.stopPropagation();
   navigator.clipboard.writeText(WINDOWS_SAVE_PATH).then(() => {
     btnCopyPath.textContent = "✓ Copied!";
     setTimeout(() => { btnCopyPath.textContent = "📋 Copy"; }, 2000);
@@ -224,7 +224,7 @@ function promptManualPersona(playerId) {
 // File loading
 dropZone.onclick = () => fileInput.click();
 fileInput.onchange = (e) => loadFile(e.target.files[0]);
-dropZone.ondragover = (e) => e.preventDefault();
+dropZone.ondragover = (e) => { if (e && e.preventDefault) e.preventDefault(); };
 dropZone.ondrop = (e) => {
   e.preventDefault();
   if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
@@ -1528,8 +1528,152 @@ function getPuzzleSolver() {
   return null;
 }
 
+// Audio Tile Controller (Tile Thief Slot 4 sound loop with Web Audio API for gapless looping)
+let currentTileAudio = null;
+let currentTileAudioBtn = null;
+let audioContextInstance = null;
+const audioBufferCache = new Map();
+let currentAudioSessionId = 0;
+
+function getAudioContext() {
+  if (!audioContextInstance) {
+    const AudioCtx = (typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext))
+      || (typeof AudioContext !== 'undefined' ? AudioContext : null);
+    if (AudioCtx) {
+      try {
+        audioContextInstance = new AudioCtx();
+      } catch (e) {
+        console.warn('Could not initialize AudioContext:', e);
+      }
+    }
+  }
+  if (audioContextInstance && audioContextInstance.state === 'suspended') {
+    try {
+      audioContextInstance.resume();
+    } catch (_) {}
+  }
+  return audioContextInstance;
+}
+
+function stopTileAudio() {
+  currentAudioSessionId++;
+  if (currentTileAudio) {
+    try {
+      if (typeof currentTileAudio.stop === 'function') {
+        currentTileAudio.stop();
+      }
+      if (typeof currentTileAudio.disconnect === 'function') {
+        currentTileAudio.disconnect();
+      }
+      if (typeof currentTileAudio.pause === 'function') {
+        currentTileAudio.pause();
+        currentTileAudio.currentTime = 0;
+      }
+    } catch (_) {}
+    currentTileAudio = null;
+  }
+  if (currentTileAudioBtn) {
+    currentTileAudioBtn.classList.remove('playing');
+    const icon = currentTileAudioBtn.querySelector('.audio-icon');
+    if (icon) icon.textContent = '▶';
+    if (typeof currentTileAudioBtn.setAttribute === 'function') {
+      currentTileAudioBtn.setAttribute('title', 'Play Sound');
+      currentTileAudioBtn.setAttribute('aria-label', 'Play sound');
+    }
+    currentTileAudioBtn = null;
+  }
+}
+
+function playGaplessTileAudio(ctx, digit, btnEl, sessionId) {
+  const startSource = (buffer) => {
+    if (currentAudioSessionId !== sessionId) return;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.connect(ctx.destination);
+    source.start(0);
+    currentTileAudio = source;
+  };
+
+  const cached = audioBufferCache.get(digit);
+  if (cached) {
+    startSource(cached);
+    return Promise.resolve();
+  }
+
+  return fetch(`assets/sounds/${digit}.ogg`)
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.arrayBuffer();
+    })
+    .then((buf) => ctx.decodeAudioData(buf))
+    .then((decodedBuffer) => {
+      audioBufferCache.set(digit, decodedBuffer);
+      startSource(decodedBuffer);
+    });
+}
+
+function playFallbackHtml5Audio(digit, btnEl) {
+  const AudioCtor = (typeof Audio !== 'undefined') ? Audio : (typeof window !== 'undefined' ? window.Audio : null);
+  if (!AudioCtor) return;
+
+  try {
+    const audio = new AudioCtor(`assets/sounds/${digit}.ogg`);
+    audio.loop = true;
+    currentTileAudio = audio;
+    currentTileAudioBtn = btnEl;
+
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch((err) => {
+        console.error('Audio playback failed:', err);
+        stopTileAudio();
+      });
+    }
+  } catch (err) {
+    console.error('HTML5 audio playback failed:', err);
+    stopTileAudio();
+  }
+}
+
+function toggleTileAudio(digit, btnEl) {
+  if (currentTileAudio) {
+    const isSame = currentTileAudioBtn === btnEl;
+    stopTileAudio();
+    if (isSame) return;
+  }
+
+  const sessionId = ++currentAudioSessionId;
+
+  if (btnEl) {
+    btnEl.classList.add('playing');
+    const icon = btnEl.querySelector('.audio-icon');
+    if (icon) icon.textContent = '⏸';
+    if (typeof btnEl.setAttribute === 'function') {
+      btnEl.setAttribute('title', 'Pause Sound');
+      btnEl.setAttribute('aria-label', 'Pause sound');
+    }
+    currentTileAudioBtn = btnEl;
+  }
+
+  const ctx = getAudioContext();
+  if (ctx && typeof fetch !== 'undefined') {
+    // Gapless sample-accurate looping via Web Audio API
+    playGaplessTileAudio(ctx, digit, btnEl, sessionId).catch((err) => {
+      console.warn('Web Audio playback failed, falling back to standard audio:', err);
+      if (currentAudioSessionId === sessionId) {
+        playFallbackHtml5Audio(digit, btnEl);
+      }
+    });
+  } else {
+    // Synchronous fallback for environments without Web Audio API or fetch (e.g. Node tests)
+    playFallbackHtml5Audio(digit, btnEl);
+  }
+}
+
 // Puzzle Solutions Renderer (Calculates Tile Thief and Optical Telegraph from worldSeed)
 function renderPuzzleSolutions(customSeed = null) {
+  stopTileAudio();
   const solver = getPuzzleSolver();
   const inputEl = document.getElementById('puzzleWorldSeedInput');
   const activeSaveSeedEl = document.getElementById('puzzleActiveSaveSeed');
@@ -1578,26 +1722,53 @@ function renderPuzzleSolutions(customSeed = null) {
     if (otResEl) otResEl.textContent = opticalTelegraphSol;
 
     // Render Tile Thief Slot Chips (4 slots)
-    // Slot 1: symbols, Slot 2: squiggles, Slot 3: poses, Slot 4: skip for now (leave in "Tile X")
+    // Slot 1: symbols, Slot 2: squiggles, Slot 3: poses, Slot 4: looping sound tile
     if (ttSlotsEl) {
       const tileThiefFolders = ['symbols', 'squiggles', 'poses', null];
       ttSlotsEl.innerHTML = tileThiefSol.split('').map((digit, idx) => {
         const folder = tileThiefFolders[idx];
-        const imgBlock = folder
-          ? `<div class="chip-img-container">
-               <img src="assets/${folder}/${digit}.png" alt="Tile ${digit}" class="puzzle-tile-img" title="Tile ${digit}">
-             </div>`
-          : `<div class="chip-img-container chip-placeholder-container" title="Image coming soon">
-               <span class="placeholder-dash">—</span>
-             </div>`;
-        return `
-          <div class="puzzle-slot-chip">
-            <span class="chip-slot-num">Slot ${idx + 1}</span>
-            ${imgBlock}
-            <span class="chip-tile-val">Tile ${digit}</span>
-          </div>
-        `;
+        if (folder) {
+          return `
+            <div class="puzzle-slot-chip">
+              <span class="chip-slot-num">Slot ${idx + 1}</span>
+              <div class="chip-img-container">
+                <img src="assets/${folder}/${digit}.png" alt="Tile ${digit}" class="puzzle-tile-img" title="Tile ${digit}">
+              </div>
+              <span class="chip-tile-val">Tile ${digit}</span>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="puzzle-slot-chip puzzle-audio-chip" data-slot="4" data-digit="${digit}">
+              <span class="chip-slot-num">Slot ${idx + 1}</span>
+              <div class="chip-img-container chip-audio-container" title="Play Sound (Tile ${digit})" role="button" tabindex="0" data-digit="${digit}" aria-label="Play sound">
+                <span class="audio-icon">▶</span>
+              </div>
+              <span class="chip-tile-val">Tile ${digit}</span>
+            </div>
+          `;
+        }
       }).join('');
+
+      // Bind audio play/pause toggle on Slot 4
+      const audioChip = ttSlotsEl.querySelector('.puzzle-audio-chip');
+      if (audioChip) {
+        const digit = audioChip.getAttribute('data-digit');
+        const audioBtn = audioChip.querySelector('.chip-audio-container');
+        const handleAudioToggle = (e) => {
+          e.stopPropagation();
+          toggleTileAudio(digit, audioBtn);
+        };
+        audioChip.onclick = handleAudioToggle;
+        if (audioBtn) {
+          audioBtn.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleTileAudio(digit, audioBtn);
+            }
+          };
+        }
+      }
     }
 
     // Render Optical Telegraph Slot Chips (5 slots)
@@ -1620,6 +1791,7 @@ function renderPuzzleSolutions(customSeed = null) {
 
 // Tab Switching Controller
 function switchTab(tabId) {
+  stopTileAudio();
   const tabBtnEditor = document.getElementById('tabBtnEditor');
   const tabBtnMap = document.getElementById('tabBtnMap');
   const tabBtnPuzzles = document.getElementById('tabBtnPuzzles');

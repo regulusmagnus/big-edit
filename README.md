@@ -29,7 +29,6 @@ Note: House House states that there is not canon terminology for the various thi
 
 ## To Do
 
-- Add audio snippets for Tile Thief solution
 - Add feature to automatically apply the Tile Thief solution to the save file
 
 ### Fun Facts
