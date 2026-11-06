@@ -1295,3 +1295,81 @@ input:checked + .slider:before { transform: translateX(20px); }
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.15); }
 }
+
+/* Puzzle Tiles Save Editor Assets (Images & Sound Clips) */
+.tile-header-img-container {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 3px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tile-header-img-container:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.tile-header-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.tile-header-audio-btn {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-sizing: border-box;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.tile-header-audio-btn:hover {
+  background: #ffffff;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25);
+}
+
+.tile-header-audio-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tile-header-audio-btn .audio-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: #1e293b;
+  margin-left: 2px;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.tile-header-audio-btn.playing {
+  background: #ecfdf5;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4), 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.tile-header-audio-btn.playing .audio-icon {
+  color: var(--accent);
+  margin-left: 0;
+  animation: pulseAudio 1.5s infinite ease-in-out;
+}

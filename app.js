@@ -751,6 +751,7 @@ function applyTileState(tile, isFound, mode, slotValue) {
 
 // Puzzle Tiles Renderer
 function renderTiles() {
+  stopTileAudio();
   if (!tilesContainer) return;
   tilesContainer.innerHTML = '';
   if (typeof TILE_DEFINITIONS === 'undefined' || !Array.isArray(TILE_DEFINITIONS)) return;
@@ -804,12 +805,31 @@ function renderTiles() {
           }).join('')
         : `<option disabled>No Slots Available</option>`;
 
+      // Determine header asset or label based on tile_set
+      let labelHtml = `<span><strong>Tile ${tile.label}</strong></span>`;
+      const tileSet = (tile.tile_set || '').trim().toLowerCase();
+      if (tileSet) {
+        if (tileSet === 'sounds') {
+          labelHtml = `
+            <div class="tile-header-audio-btn" role="button" tabindex="0" data-digit="${tile.label}" title="Play Sound (Tile ${tile.label})" aria-label="Play sound">
+              <span class="audio-icon">▶</span>
+            </div>
+          `;
+        } else {
+          labelHtml = `
+            <div class="tile-header-img-container" title="Tile ${tile.label}">
+              <img src="assets/${tileSet}/${tile.label}.png" alt="Tile ${tile.label}" class="tile-header-img" title="Tile ${tile.label}">
+            </div>
+          `;
+        }
+      }
+
       const card = document.createElement('div');
       card.className = 'gourd-card';
-      if (card.setAttribute) card.setAttribute('data-search', `tile ${tile.label || ''} ${puzzle || ''}`.toLowerCase());
+      if (card.setAttribute) card.setAttribute('data-search', `tile ${tile.label || ''} ${puzzle || ''} ${tile.tile_set || ''}`.toLowerCase());
       card.innerHTML = `
         <div class="gourd-header">
-          <span><strong>Tile ${tile.label}</strong></span>
+          ${labelHtml}
           <label class="switch">
             <input type="checkbox" class="tile-found-toggle" ${state.found ? 'checked' : ''}>
             <span class="slider"></span>
@@ -831,6 +851,26 @@ function renderTiles() {
           </div>
         </div>
       `;
+
+      // Bind audio toggle event if tile uses sound clip
+      if (tileSet === 'sounds') {
+        const audioBtn = card.querySelector('.tile-header-audio-btn');
+        if (audioBtn) {
+          const handleAudioToggle = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleTileAudio(tile.label, audioBtn);
+          };
+          audioBtn.onclick = handleAudioToggle;
+          audioBtn.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleTileAudio(tile.label, audioBtn);
+            }
+          };
+        }
+      }
 
       const foundToggle = card.querySelector('.tile-found-toggle');
       const radioInputs = card.querySelectorAll(`input[name="tile_mode_${tile.item_id}"]`);
@@ -1637,7 +1677,7 @@ function playFallbackHtml5Audio(digit, btnEl) {
 }
 
 function toggleTileAudio(digit, btnEl) {
-  if (currentTileAudio) {
+  if (currentTileAudio || currentTileAudioBtn) {
     const isSame = currentTileAudioBtn === btnEl;
     stopTileAudio();
     if (isSame) return;
